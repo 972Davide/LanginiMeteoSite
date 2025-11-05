@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Langini Meteo Online</title>
+
+<!-- Librerie -->
 <script src="https://cdn.jsdelivr.net/npm/justgage@1.5.0/justgage.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/raphael@2.3.0/raphael.min.js"></script>
 
@@ -11,38 +13,57 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  text-align: center;
   background: linear-gradient(#001b3a, #0066b2);
   color: white;
+  text-align: center;
 }
+
 header {
   background: #9998a8;
   color: white;
   font-weight: bold;
   padding: 12px 0;
-  font-size: 1.5em;
+  font-size: 1.6em;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
+
 #gauges {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  align-items: center;
   gap: 25px;
   margin: 25px;
 }
+
 .gaugeBox {
-  background: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.95);
   border-radius: 14px;
-  width: 260px;
-  height: 230px;
+  width: 270px;
+  height: 260px;
   padding-top: 10px;
   box-shadow: 0 0 15px rgba(0,0,0,0.3);
+  color: #222;
 }
+
+.valueLabel {
+  font-size: 1.3em;
+  font-weight: bold;
+  color: #000;
+  margin-top: 4px;
+}
+
+.meanLabel {
+  font-size: 0.9em;
+  color: #444;
+}
+
 footer {
   margin-top: 20px;
   font-size: 0.9em;
   color: #a9c9ff;
 }
+
 a {
   color: #fff;
   background: #0066cc;
@@ -50,9 +71,11 @@ a {
   border-radius: 10px;
   text-decoration: none;
   font-weight: bold;
-  margin-top: 10px;
+  margin-top: 15px;
   display: inline-block;
+  transition: 0.3s;
 }
+
 a:hover {
   background: #0099ff;
 }
@@ -63,10 +86,30 @@ a:hover {
 <header>🌤️ Langini Meteo Online</header>
 
 <div id="gauges">
-  <div class="gaugeBox"><div id="g1"></div><p>Pressione (hPa)</p></div>
-  <div class="gaugeBox"><div id="g2"></div><p>Temperatura (°C)</p></div>
-  <div class="gaugeBox"><div id="g3"></div><p>Umidità (%)</p></div>
-  <div class="gaugeBox"><div id="g4"></div><p>Qualità Aria (MQ135)</p></div>
+  <div class="gaugeBox">
+    <div id="g1"></div>
+    <div class="valueLabel" id="v1">--</div>
+    <div class="meanLabel" id="m1">Media oraria: --</div>
+    <p>Pressione (hPa)</p>
+  </div>
+  <div class="gaugeBox">
+    <div id="g2"></div>
+    <div class="valueLabel" id="v2">--</div>
+    <div class="meanLabel" id="m2">Media oraria: --</div>
+    <p>Temperatura (°C)</p>
+  </div>
+  <div class="gaugeBox">
+    <div id="g3"></div>
+    <div class="valueLabel" id="v3">--</div>
+    <div class="meanLabel" id="m3">Media oraria: --</div>
+    <p>Umidità (%)</p>
+  </div>
+  <div class="gaugeBox">
+    <div id="g4"></div>
+    <div class="valueLabel" id="v4">--</div>
+    <div class="meanLabel" id="m4">Media oraria: --</div>
+    <p>Qualità Aria (MQ135)</p>
+  </div>
 </div>
 
 <a href="grafici.html">📊 Vedi Grafici Dettagliati</a>
@@ -80,26 +123,49 @@ Aggiornamento automatico ogni 30 s<br>
 const CHANNEL_ID = 3149218;
 const API_KEY = "4EGG4DXUFDU6FUGN";
 
+// === Creazione dei 4 gauge ===
 const g1 = new JustGage({ id: "g1", value: 0, min: 950, max: 1050, gaugeWidthScale: 0.8,
-  levelColors: ["#00ffcc","#00cc66","#ff9933","#ff3300"], pointer: true });
+  levelColors: ["#00ffcc","#00cc66","#ff9933","#ff3300"], pointer: true, title: "" });
 const g2 = new JustGage({ id: "g2", value: 0, min: -10, max: 50, gaugeWidthScale: 0.8,
-  levelColors: ["#3399ff","#00ccff","#ffcc00","#ff3300"], pointer: true });
+  levelColors: ["#3399ff","#00ccff","#ffcc00","#ff3300"], pointer: true, title: "" });
 const g3 = new JustGage({ id: "g3", value: 0, min: 0, max: 100, gaugeWidthScale: 0.8,
-  levelColors: ["#ff3300","#ffcc00","#00cc66","#0099ff"], pointer: true });
+  levelColors: ["#ff3300","#ffcc00","#00cc66","#0099ff"], pointer: true, title: "" });
 const g4 = new JustGage({ id: "g4", value: 0, min: 0, max: 500, gaugeWidthScale: 0.8,
-  levelColors: ["#00cc66","#ffcc00","#ff6600","#ff0000"], pointer: true });
+  levelColors: ["#00cc66","#ffcc00","#ff6600","#ff0000"], pointer: true, title: "" });
 
 async function aggiorna() {
-  const url = `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${API_KEY}&results=1`;
+  const url = `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${API_KEY}&results=60`;
   const res = await fetch(url);
   const data = await res.json();
   if (!data.feeds || data.feeds.length === 0) return;
-  const ultimo = data.feeds[0];
-  g1.refresh(parseFloat(ultimo.field1));
-  g2.refresh(parseFloat(ultimo.field2));
-  g3.refresh(parseFloat(ultimo.field3));
-  g4.refresh(parseFloat(ultimo.field4));
+
+  const feeds = data.feeds.map(f => ({
+    f1: parseFloat(f.field1),
+    f2: parseFloat(f.field2),
+    f3: parseFloat(f.field3),
+    f4: parseFloat(f.field4)
+  }));
+
+  const ultimo = feeds[feeds.length - 1];
+  const medie = {
+    m1: (feeds.reduce((s,f)=>s+f.f1,0)/feeds.length).toFixed(1),
+    m2: (feeds.reduce((s,f)=>s+f.f2,0)/feeds.length).toFixed(1),
+    m3: (feeds.reduce((s,f)=>s+f.f3,0)/feeds.length).toFixed(1),
+    m4: (feeds.reduce((s,f)=>s+f.f4,0)/feeds.length).toFixed(1)
+  };
+
+  // Aggiornamento gauge e testi
+  g1.refresh(ultimo.f1); g2.refresh(ultimo.f2); g3.refresh(ultimo.f3); g4.refresh(ultimo.f4);
+  document.getElementById("v1").innerHTML = ultimo.f1.toFixed(1);
+  document.getElementById("v2").innerHTML = ultimo.f2.toFixed(1);
+  document.getElementById("v3").innerHTML = ultimo.f3.toFixed(1);
+  document.getElementById("v4").innerHTML = ultimo.f4.toFixed(1);
+  document.getElementById("m1").innerHTML = `Media oraria: ${medie.m1}`;
+  document.getElementById("m2").innerHTML = `Media oraria: ${medie.m2}`;
+  document.getElementById("m3").innerHTML = `Media oraria: ${medie.m3}`;
+  document.getElementById("m4").innerHTML = `Media oraria: ${medie.m4}`;
 }
+
 aggiorna();
 setInterval(aggiorna, 30000);
 </script>
