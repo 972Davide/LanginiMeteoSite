@@ -101,7 +101,7 @@ header h1{
 /* ======= GAUGE ======= */
 #gauges{
   position:absolute;
-  bottom:0;
+  bottom:10%;               /* ⬆️ sollevato dal bordo inferiore */
   left:50%;
   transform:translateX(-50%);
   width:100%;
@@ -110,9 +110,11 @@ header h1{
   flex-wrap:wrap;
   justify-content:center;
   gap:25px;
-  background:linear-gradient(to top,rgba(0,0,40,0.85) 0%,rgba(0,0,40,0.0) 100%);
+  background:linear-gradient(to top,rgba(0,0,40,0.75) 0%,rgba(0,0,40,0.0) 100%);
   padding:25px 0 35px;
+  border-top:1px solid rgba(255,255,255,0.1);
 }
+
 .gaugeBox{
   background:none;
   border:none;
