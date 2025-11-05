@@ -17,11 +17,31 @@ html,body{
   color:#fff;text-align:center;
   overflow-x:hidden;
 }
+
+/* ======= TITOLO SCORREVOLE ======= */
 header{
+  position:relative;
   background:rgba(0,0,0,0.25);
-  padding:12px 0;font-weight:700;font-size:1.6em;
+  overflow:hidden;
+  padding:10px 0;
+  height:50px;
   backdrop-filter:blur(6px);
 }
+header h1{
+  position:absolute;
+  white-space:nowrap;
+  font-size:1.6em;
+  font-weight:700;
+  animation:scrollTitle 15s linear infinite;
+  color:#fff;
+  text-shadow:0 0 6px #aeeaff,0 0 12px #66ccff;
+}
+@keyframes scrollTitle{
+  0%{left:100%;}
+  100%{left:-100%;}
+}
+
+/* ======= CIELO ======= */
 #sky{
   position:relative;
   min-height:100vh;
@@ -31,7 +51,6 @@ header{
   flex-direction:column;
   align-items:center;
 }
-
 #stars{position:absolute;inset:0;pointer-events:none;z-index:1}
 .star{
   position:absolute;width:2px;height:2px;
@@ -41,11 +60,13 @@ header{
 @keyframes twinkle{0%,100%{opacity:0}50%{opacity:1}}
 
 .body{
-  position:absolute;width:130px;height:130px;border-radius:50%;
-  top:20%;left:-20%;
+  position:absolute;
+  width:130px;height:130px;
+  border-radius:50%;
+  top:25%;left:-20%;
   transform:translate(-50%,-50%);
   will-change:transform,opacity;
-  z-index:2;
+  z-index:1; /* sotto al testo e ai gauge */
 }
 #sun{
   background:radial-gradient(circle at 30% 30%,#fff68d 10%,#ffb400 60%,#ff6600 100%);
@@ -53,23 +74,25 @@ header{
 }
 #moon{
   background:radial-gradient(circle at 40% 40%,#e0f0ff 25%,#7fa9ff 100%);
-  box-shadow:0 0 40px 12px rgba(120,160,255,.28);
+  box-shadow:0 0 40px 12px rgba(120,160,255,.3);
   opacity:.95;
 }
 
+/* ======= CONTO ALLA ROVESCIA ======= */
 #astroCountdown{
   position:relative;
-  z-index:3;
-  background:rgba(0,0,0,0.35);
+  z-index:2;
+  background:rgba(0,0,0,0.55);
   padding:10px 20px;
   border-radius:12px;
   display:inline-block;
   font-size:1.2em;
   font-weight:600;
-  margin-top:280px;
-  box-shadow:0 0 10px rgba(0,0,0,0.3);
+  margin-top:220px;
+  box-shadow:0 0 10px rgba(0,0,0,0.4);
 }
 
+/* ======= GAUGE ======= */
 #gauges{
   position:relative;
   z-index:3;
@@ -77,10 +100,8 @@ header{
   flex-wrap:wrap;
   justify-content:center;
   gap:25px;
-  padding:40px 0 80px;
+  padding:100px 0 80px;
 }
-
-/* gauge trasparenti integrati nel cielo */
 .gaugeBox{
   background:none;
   border:none;
@@ -103,14 +124,14 @@ a.btn{
   backdrop-filter:blur(5px);
 }
 a.btn:hover{background:rgba(0,0,0,0.5);}
-footer{
-  font-size:.9em;color:#a9c9ff;padding:10px;margin-bottom:15px;
-}
+footer{font-size:.9em;color:#a9c9ff;padding:10px;margin-bottom:15px;}
 </style>
 </head>
 
 <body>
-<header>🌤️ Langini Meteo Online</header>
+<header>
+  <h1>🌤️ Langini Meteo Online • Roma • Dati in tempo reale ThingSpeak</h1>
+</header>
 
 <div id="sky">
   <div id="stars"></div>
@@ -154,7 +175,7 @@ footer{
 const LAT=41.8933,LON=12.4829;
 const CHANNEL_ID=3149218,API_KEY="4EGG4DXUFDU6FUGN";
 
-// stelle
+// Stelle
 (function makeStars(){
   const N=80,box=document.getElementById('stars');
   for(let i=0;i<N;i++){
@@ -168,6 +189,7 @@ const CHANNEL_ID=3149218,API_KEY="4EGG4DXUFDU6FUGN";
   }
 })();
 
+// Alba / tramonto
 let timesToday=null,timesTomorrow=null;
 function computeTimes(){
   const now=new Date();
@@ -179,6 +201,7 @@ function computeTimes(){
 computeTimes();
 setInterval(()=>{let n=new Date();if(n.getHours()===0&&n.getMinutes()<2)computeTimes();},60000);
 
+// Utilità
 function lerp(a,b,t){return a+(b-a)*t}
 function clamp01(x){return Math.max(0,Math.min(1,x))}
 function timeProgress(t1,t2,n){return clamp01((n-t1)/(t2-t1))}
@@ -189,6 +212,7 @@ function mixColor(c1,c2,p){
   return r+g+b;
 }
 
+// Aggiornamento cielo
 function updateSky(){
   const now=new Date();
   const sunrise=timesToday.sunrise;
@@ -217,17 +241,21 @@ function updateSky(){
   if(isDay){
     sun.style.display='block';moon.style.display='none';stars.style.display='none';
     const p=timeProgress(sunrise,sunset,now);
-    const x=lerp(-10,110,p),y=60-40*Math.sin(Math.PI*p);
-    sun.style.left=x+'%';sun.style.top=y+'%';
+    const x=lerp(-10,110,p);
+    const y=35-15*Math.sin(Math.PI*p); // più in alto
+    sun.style.left=x+'%';
+    sun.style.top=y+'%';
   }else{
     sun.style.display='none';moon.style.display='block';stars.style.display='block';
     const moonStart=sunset,moonEnd=nextSunrise;
     const p=timeProgress(moonStart,moonEnd,now);
-    const x=lerp(-10,110,p),y=70-30*Math.sin(Math.PI*p);
-    moon.style.left=x+'%';moon.style.top=y+'%';
+    const x=lerp(-10,110,p);
+    const y=40-10*Math.sin(Math.PI*p); // più in alto
+    moon.style.left=x+'%';
+    moon.style.top=y+'%';
   }
 
-  // countdown
+  // Countdown
   const out=document.getElementById('astroCountdown');
   let target,icon;
   if(isDay){target=sunset;icon="☀️";}
