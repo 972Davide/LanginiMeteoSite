@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Langini Meteo — Realtime</title>
+
+<!-- Gauge (JustGage + Raphael) -->
+<script src="https://cdn.jsdelivr.net/npm/raphael@2.3.0/raphael.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/justgage@1.5.0/justgage.min.js"></script>
+<!-- Chart.js per mini trend -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+  :root{
+    --bg:#001B3A; --fg:#ffffff; --muted:#a9c9ff; --card:#0b2d5c;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    color:var(--fg); background:var(--bg);
+    transition:background .6s ease, color .6s ease;
+  }
+  header{
+    padding:18px 16px; text-align:center; position:sticky; top:0;
+    background:linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,0));
+    backdrop-filter:saturate(120%) blur(4px);
+  }
+  h1{margin:0; font-size:1.4rem; letter-spacing:.3px}
+  .sub{color:var(--muted); font-size:.9rem; margin-top:4px}
+  .wrap{padding:14px; max-width:1000px; margin:0 auto}
+  .grid{
+    display:grid; gap:12px;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  @media (min-width:900px){
+    .grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  }
+  .card{
+    background:var(--card); border-radius:18px; padding:10px 8px 14px;
+    box-shadow:0 8px 24px rgba(0,0,0,.25);
+  }
+  .title{font-size:.95rem; text-align:center; margin-bottom:6px}
+  .gauge{height:160px}
+  .footer{
+    text-align:center; color:var(--muted); font-size:.9rem; margin:18px 6px 28px;
+  }
+  .row{
+    display:grid; grid-template-columns:1fr; gap:12px; margin-top:14px;
+  }
+  canvas{background:rgba(255,255,255,.03); border-radius:14px; padding:8px}
+  /* badge giorno/notte */
+  .astro{
+    width:64px;height:64px;border-radius:50%; margin:10px auto 2px;
+    box-shadow:0 0 18px rgba(252,214,108,.55);
+  }
+  .sun{ background:radial-gradient(circle at 30% 30%,#FFD700,#FF8C00); }
+  .moon{ background:radial-gradient(circle at 35% 35%,#d9ddff,#7f86b5); box-shadow:0 0 18px rgba(170,178,255,.45); }
+  /* temi dinamici giorno/notte */
+  .day  { --bg:#eaf6ff; --fg:#13345c; --muted:#3566a8; --card:#ffffff; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="astro sun" id="astro"></div>
+    <h1>🌤️ Langini Meteo — Realtime</h1>
+    <div class="sub" id="subtitle">Aggiornamento…</div>
+  </header>
+
+  <div class="wrap">
+    <section class="grid">
+      <div class="card">
+        <div class="title">Pressione (mbar)</div>
+        <div class="gauge" id="g1"></div>
+      </div>
+      <div class="card">
+        <div class="title">Temperatura (°C)</div>
+        <div class="gauge" id="g2"></div>
+      </div>
+      <div class="card">
+        <div class="title">Umidità (%)</div>
+        <div class="gauge" id="g3"></div>
+      </div>
+      <div class="card">
+        <div class="title">Qualità Aria (AQI)</div>
+        <div class="gauge" id="g4"></div>
+      </div>
+    </section>
+
+    <section class="row">
+      <div class="card">
+        <div class="title">Trend ultime letture</div>
+        <canvas id="trend" height="220"></canvas>
+      </div>
+    </section>
+
+    <div class="footer" id="foot">
+      Langini Meteo • ThingSpeak CH: 3149218 • refresh 20s
+    </div>
+  </div>
+
+<script>
+/* === CONFIG === */
+const CHANNEL_ID = 3149218;               // tuo ID canale
+const READ_KEY   = "4EGG4DXUFDU6FUGN";    // tua Read API key
+const REFRESH_MS = 20000;                 // 20s (limite ThingSpeak Free >=15s)
+const RESULTS_TREND = 20;                 // punti trend
+
+/* === Tema giorno/notte dinamico (in base all'ora locale) === */
+function setThemeByTime(){
+  const h = new Date().getHours();
+  const isDay = h >= 7 && h < 18;
+  document.body.classList.toggle('day', isDay);
+  const astro = document.getElementById('astro');
+  astro.className = 'astro ' + (isDay ? 'sun' : 'moon');
+}
+setThemeByTime();
+setInterval(setThemeByTime, 60_000);
+
+/* === Gauges === */
+let g1 = new JustGage({id:"g1", value:0, min:940, max:1060, gaugeWidthScale:0.9, relativeGaugeSize:true, levelColors:["#3498db","#2ecc71","#e74c3c"]});
+let g2 = new JustGage({id:"g2", value:0, min:-10, max:50,  gaugeWidthScale:0.9, relativeGaugeSize:true, levelColors:["#3498db","#2ecc71","#e74c3c"]});
+let g3 = new JustGage({id:"g3", value:0, min:0,   max:100, gaugeWidthScale:0.9, relativeGaugeSize:true, levelColors:["#3498db","#2ecc71","#e74c3c"]});
+let g4 = new JustGage({id:"g4", value:0, min:0,   max:500, gaugeWidthScale:0.9, relativeGaugeSize:true, levelColors:["#2ecc71","#f1c40f","#e74c3c"]});
+
+/* === Chart.js mini-trend === */
+const ctx = document.getElementById('trend');
+const trend = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [
+      { label: 'mbar', data: [], borderWidth: 2, tension:.3 },
+      { label: '°C',   data: [], borderWidth: 2, tension:.3 },
+      { label: '%',    data: [], borderWidth: 2, tension:.3 },
+      { label: 'AQI',  data: [], borderWidth: 2, tension:.3 }
+    ]
+  },
+  options: {
+    responsive:true,
+    plugins:{ legend:{ labels:{ color:getComputedStyle(document.body).getPropertyValue('--muted') } } },
+    scales:{
+      x:{ ticks:{ color:getComputedStyle(document.body).getPropertyValue('--muted') }, grid:{ color:'rgba(255,255,255,.06)'} },
+      y:{ ticks:{ color:getComputedStyle(document.body).getPropertyValue('--muted') }, grid:{ color:'rgba(255,255,255,.06)'} }
+    }
+  }
+});
+
+/* === Helpers ThingSpeak === */
+const baseUrl = `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${READ_KEY}`;
+function fmt(ts){ const d=new Date(ts); return d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}); }
+
+async function fetchLast(){
+  const r = await fetch(baseUrl + '&results=1', {cache:'no-store'});
+  if(!r.ok) throw new Error('HTTP ' + r.status);
+  const j = await r.json();
+  const f = j.feeds[0] || {};
+  return {
+    time: f.created_at,
+    p: Number(f.field1),     // mbar
+    t: Number(f.field2),     // °C
+    h: Number(f.field3),     // %
+    a: Number(f.field4)      // AQI
+  };
+}
+
+async function fetchTrend(n=RESULTS_TREND){
+  const r = await fetch(baseUrl + `&results=${n}`, {cache:'no-store'});
+  if(!r.ok) throw new Error('HTTP ' + r.status);
+  const j = await r.json();
+  const xs = (j.feeds||[]).map(f => fmt(f.created_at));
+  return {
+    labels: xs,
+    p: (j.feeds||[]).map(f => Number(f.field1)),
+    t: (j.feeds||[]).map(f => Number(f.field2)),
+    h: (j.feeds||[]).map(f => Number(f.field3)),
+    a: (j.feeds||[]).map(f => Number(f.field4)),
+    last: j.feeds?.[j.feeds.length-1]
+  };
+}
+
+/* === Update loop === */
+async function updateOnce(){
+  try{
+    const sub = document.getElementById('subtitle');
+    // Gauges con ultimo valore
+    const L = await fetchLast();
+    if(Number.isFinite(L.p)) g1.refresh(L.p);
+    if(Number.isFinite(L.t)) g2.refresh(L.t);
+    if(Number.isFinite(L.h)) g3.refresh(L.h);
+    if(Number.isFinite(L.a)) g4.refresh(L.a);
+    sub.textContent = `Ultimo aggiornamento: ${fmt(L.time)}`;
+
+    // Trend
+    const T = await fetchTrend(RESULTS_TREND);
+    trend.data.labels = T.labels;
+    trend.data.datasets[0].data = T.p;
+    trend.data.datasets[1].data = T.t;
+    trend.data.datasets[2].data = T.h;
+    trend.data.datasets[3].data = T.a;
+    trend.update();
+  }catch(err){
+    console.error(err);
+    document.getElementById('subtitle').textContent = 'Errore connessione ThingSpeak. Riprovo…';
+  }
+}
+updateOnce();
+setInterval(updateOnce, REFRESH_MS);
+
+/* Footer dinamico */
+(function(){
+  const f=document.getElementById('foot');
+  const now = new Date();
+  f.innerHTML = `Langini Meteo • CH ${CHANNEL_ID} • ${now.toLocaleDateString('it-IT')} • refresh ${REFRESH_MS/1000}s`;
+})();
+</script>
+</body>
+</html>
