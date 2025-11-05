@@ -18,7 +18,7 @@ html,body{
   overflow:hidden;
 }
 
-/* ======= TITOLO SCORREVOLE ======= */
+/* ====== TITOLO SCORREVOLE ====== */
 header{
   position:relative;
   background:rgba(0,0,0,0.25);
@@ -42,13 +42,14 @@ header h1{
   100%{left:-100%;}
 }
 
-/* ======= CIELO ======= */
+/* ====== CIELO ====== */
 #sky{
   position:relative;
   width:100%;
   height:100vh;
   overflow:hidden;
-  transition:background 1.5s;
+  background:linear-gradient(to bottom,#001028,#002a4f);
+  transition:background 5s ease;    /* 🔆 transizione graduale del cielo */
 }
 #stars{position:absolute;inset:0;pointer-events:none;z-index:1}
 .star{
@@ -77,7 +78,7 @@ header h1{
   opacity:.95;
 }
 
-/* ======= ALBA/TRAMONTO (segue sole/luna) ======= */
+/* ====== ALBA/TRAMONTO ====== */
 #astroCountdown{
   position:absolute;
   z-index:3;
@@ -98,10 +99,10 @@ header h1{
   to   { transform:translate(-50%, -130%) translateY(-3px); }
 }
 
-/* ======= GAUGE ======= */
+/* ====== GAUGE ====== */
 #gauges{
   position:absolute;
-  bottom:12%;               /* Sollevati dal fondo */
+  bottom:12%;
   left:50%;
   transform:translateX(-50%);
   width:100%;
@@ -125,7 +126,7 @@ header h1{
 .value{font-size:1.1em;font-weight:700;color:#fff}
 .mean{font-size:.95em;color:#a0c4ff}
 
-/* ======= SOTTO GAUGE ======= */
+/* ====== SOTTO GAUGE ====== */
 #underGauges{
   position:absolute;
   bottom:2%;
@@ -150,7 +151,7 @@ header h1{
   margin:0;
 }
 
-/* ======= MOBILE ======= */
+/* ====== MOBILE ====== */
 @media (max-width:700px){
   .gaugeBox{width:180px;height:180px;}
   #gauges{gap:10px;padding:15px 0 20px;}
@@ -243,7 +244,7 @@ function mixColor(c1,c2,p){
   return r+g+b;
 }
 
-// Aggiorna cielo
+// Aggiorna cielo gradualmente
 function updateSky(){
   const now=new Date();
   const sunrise=timesToday.sunrise;
@@ -252,7 +253,7 @@ function updateSky(){
   const isDay=(now>=sunrise&&now<sunset);
   const sky=document.getElementById('sky');
 
-  const TW=45*60000;
+  const TW=60*60000; // durata crepuscolo: 1 ora
   let bg1,bg2;
   if(now>=new Date(sunrise-TW)&&now<new Date(sunrise+TW)){
     const p=timeProgress(sunrise-TW,sunrise+TW,now);
@@ -302,7 +303,7 @@ function updateSky(){
   label.innerHTML=`${icon} ${isDay?"Tramonto":"Alba"} tra <b>${h}h ${m}min</b>`;
 }
 updateSky();
-setInterval(updateSky,60000);
+setInterval(updateSky,30000); // ogni 30s aggiorna colore gradualmente
 
 // Gauges
 const g1=new JustGage({id:"g1",value:0,min:950,max:1050,gaugeWidthScale:.8,counter:true,pointer:true});
