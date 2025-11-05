@@ -13,7 +13,7 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: linear-gradient(to bottom, #001b3a 0%, #004a8d 40%, #0066b2 100%);
+  background: linear-gradient(to bottom, #001028, #004070);
   color: white;
   text-align: center;
   overflow-x: hidden;
@@ -27,35 +27,62 @@ header {
   font-size: 1.6em;
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
+
+/* cielo dinamico */
 #sky {
   position: relative;
   height: 45vh;
   overflow: hidden;
-  background: linear-gradient(to bottom, #003060, #0070c0);
+  transition: background 2s;
+}
+#stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: transparent;
+  overflow: hidden;
+}
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: white;
+  border-radius: 50%;
+  opacity: 0;
+  animation: twinkle 4s infinite;
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
 }
 #sun, #moon {
   position: absolute;
-  top: 20%;
+  top: 25%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 120px;
-  height: 120px;
+  width: 130px;
+  height: 130px;
   border-radius: 50%;
   animation: float 6s ease-in-out infinite;
 }
 #sun {
-  background: radial-gradient(circle, #fff600 20%, #ffcc00 70%, #ffaa00 100%);
-  box-shadow: 0 0 40px 10px #ffcc00;
+  background: radial-gradient(circle, #fff600 10%, #ffcc00 60%, #ff8800 100%);
+  box-shadow: 0 0 50px 15px #ffdd55;
 }
 #moon {
   background: radial-gradient(circle at 30% 30%, #f0f0f0 40%, #bdbdbd 100%);
-  box-shadow: 0 0 25px 5px #cccccc;
+  box-shadow: 0 0 35px 8px rgba(255,255,255,0.4);
 }
 @keyframes float {
   0% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-50%, -60%) scale(1.1); }
+  50% { transform: translate(-50%, -60%) scale(1.08); }
   100% { transform: translate(-50%, -50%) scale(1); }
 }
+
+/* gauge section */
 #gauges {
   position: relative;
   bottom: 0;
@@ -63,8 +90,8 @@ header {
   flex-wrap: wrap;
   justify-content: center;
   gap: 25px;
-  padding: 25px 0 50px;
-  background: linear-gradient(to bottom, #003366, #002040);
+  padding: 30px 0 60px;
+  background: linear-gradient(to bottom, #002040, #000c1a);
   border-top: 3px solid #0066cc;
 }
 .gaugeBox {
@@ -92,7 +119,6 @@ header {
   color: #444;
 }
 footer {
-  margin-top: 0;
   font-size: 0.9em;
   color: #a9c9ff;
   background: #001b3a;
@@ -119,6 +145,7 @@ a:hover {
 <header>🌤️ Langini Meteo Online</header>
 
 <div id="sky">
+  <div id="stars"></div>
   <div id="sun" style="display:none;"></div>
   <div id="moon" style="display:none;"></div>
 </div>
@@ -161,46 +188,49 @@ Aggiornamento automatico ogni 30 s<br>
 const CHANNEL_ID = 3149218;
 const API_KEY = "4EGG4DXUFDU6FUGN";
 
+// === Genera stelle random ===
+function generaStelle() {
+  const starsContainer = document.getElementById("stars");
+  for (let i = 0; i < 70; i++) {
+    const s = document.createElement("div");
+    s.classList.add("star");
+    s.style.left = Math.random() * 100 + "%";
+    s.style.top = Math.random() * 100 + "%";
+    s.style.animationDelay = (Math.random() * 4) + "s";
+    s.style.opacity = Math.random();
+    starsContainer.appendChild(s);
+  }
+}
+generaStelle();
+
 // === Sole/Luna dinamici ===
 function aggiornaCielo() {
   const ora = new Date().getHours();
   const sun = document.getElementById("sun");
   const moon = document.getElementById("moon");
+  const stars = document.getElementById("stars");
+  const sky = document.getElementById("sky");
 
   if (ora >= 6 && ora < 18) {
     sun.style.display = "block";
     moon.style.display = "none";
-    document.body.style.background = "linear-gradient(to bottom, #0099ff 0%, #0055aa 100%)";
+    stars.style.display = "none";
+    sky.style.background = "linear-gradient(to bottom, #00baff, #0070c0)";
   } else {
     sun.style.display = "none";
     moon.style.display = "block";
-    document.body.style.background = "linear-gradient(to bottom, #001030 0%, #002850 100%)";
+    stars.style.display = "block";
+    sky.style.background = "linear-gradient(to bottom, #000820, #002850)";
   }
 }
 aggiornaCielo();
 setInterval(aggiornaCielo, 60000);
 
 // === Gauge ===
-const g1 = new JustGage({
-  id: "g1", value: 0, min: 950, max: 1050, title: "",
-  gaugeWidthScale: 0.8, counter: true, pointer: true,
-  levelColors: ["#00ccff","#00ff99","#ffcc00","#ff3300"]
-});
-const g2 = new JustGage({
-  id: "g2", value: 0, min: -10, max: 50, title: "",
-  gaugeWidthScale: 0.8, counter: true, pointer: true,
-  levelColors: ["#3399ff","#00ccff","#ffcc00","#ff3300"]
-});
-const g3 = new JustGage({
-  id: "g3", value: 0, min: 0, max: 100, title: "",
-  gaugeWidthScale: 0.8, counter: true, pointer: true,
-  levelColors: ["#ff3300","#ffcc00","#00cc66","#0099ff"]
-});
-const g4 = new JustGage({
-  id: "g4", value: 0, min: 0, max: 500, title: "",
-  gaugeWidthScale: 0.8, counter: true, pointer: true,
-  levelColors: ["#00cc66","#ffcc00","#ff6600","#ff0000"]
-});
+const g1 = new JustGage({ id:"g1", value:0, min:950, max:1050, gaugeWidthScale:0.8, counter:true, pointer:true, levelColors:["#00ccff","#00ff99","#ffcc00","#ff3300"] });
+const g2 = new JustGage({ id:"g2", value:0, min:-10, max:50, gaugeWidthScale:0.8, counter:true, pointer:true, levelColors:["#3399ff","#00ccff","#ffcc00","#ff3300"] });
+const g3 = new JustGage({ id:"g3", value:0, min:0, max:100, gaugeWidthScale:0.8, counter:true, pointer:true, levelColors:["#ff3300","#ffcc00","#00cc66","#0099ff"] });
+const g4 = new JustGage({ id:"g4", value:0, min:0, max:500, gaugeWidthScale:0.8, counter:true, pointer:true, levelColors:["#00cc66","#ffcc00","#ff6600","#ff0000"] });
 
 // === Dati da ThingSpeak ===
 async function aggiorna() {
@@ -217,10 +247,7 @@ async function aggiorna() {
       f4: parseFloat(f.field4)
     }));
 
-    // ultimo valore (LIVE)
     const ultimo = feeds[feeds.length - 1];
-
-    // medie orarie
     const media = arr => (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1);
     const medie = {
       m1: media(feeds.map(f=>f.f1)),
@@ -229,13 +256,7 @@ async function aggiorna() {
       m4: media(feeds.map(f=>f.f4))
     };
 
-    // Aggiorna gauge
-    g1.refresh(ultimo.f1);
-    g2.refresh(ultimo.f2);
-    g3.refresh(ultimo.f3);
-    g4.refresh(ultimo.f4);
-
-    // Aggiorna testi
+    g1.refresh(ultimo.f1); g2.refresh(ultimo.f2); g3.refresh(ultimo.f3); g4.refresh(ultimo.f4);
     document.getElementById("v1").textContent = ultimo.f1.toFixed(1);
     document.getElementById("v2").textContent = ultimo.f2.toFixed(1);
     document.getElementById("v3").textContent = ultimo.f3.toFixed(1);
@@ -248,7 +269,6 @@ async function aggiorna() {
     console.error("Errore durante aggiornamento:", e);
   }
 }
-
 aggiorna();
 setInterval(aggiorna, 30000);
 </script>
