@@ -85,7 +85,7 @@ header h1{
 /* ====== ALBA/TRAMONTO COUNTDOWN ====== */
 #astroCountdown{
   position:absolute;
-  bottom:38%;             /* 🔹 rialzato ancora un po’ */
+  bottom:38%;             /* rialzato sopra i gauge */
   left:50%;
   transform:translateX(-50%);
   background:rgba(0,0,0,0.6);
@@ -128,8 +128,8 @@ header h1{
   color:#fff;
 }
 .label{font-size:1.15em;font-weight:700;margin-top:4px;color:#cce6ff}
-.value{font-size:1.1em;font-weight:700;color:#fff}
-.mean{font-size:.95em;color:#a0c4ff}
+.value{font-size:1.4em;font-weight:700;color:#fff;margin-top:-5px;}
+.mean{font-size:.95em;color:#a0c4ff;margin-top:2px;}
 
 /* ====== FOOTER ====== */
 #underGauges{
@@ -173,25 +173,25 @@ header h1{
     <div class="gaugeBox">
       <div id="g1" style="height:150px"></div>
       <div class="label">Pressione (hPa)</div>
-      <div class="value">Live: <span id="v1">--</span></div>
+      <div class="value" id="v1">--</div>
       <div class="mean">Media oraria: <span id="m1">--</span></div>
     </div>
     <div class="gaugeBox">
       <div id="g2" style="height:150px"></div>
       <div class="label">Temperatura (°C)</div>
-      <div class="value">Live: <span id="v2">--</span></div>
+      <div class="value" id="v2">--</div>
       <div class="mean">Media oraria: <span id="m2">--</span></div>
     </div>
     <div class="gaugeBox">
       <div id="g3" style="height:150px"></div>
       <div class="label">Umidità (%)</div>
-      <div class="value">Live: <span id="v3">--</span></div>
+      <div class="value" id="v3">--</div>
       <div class="mean">Media oraria: <span id="m3">--</span></div>
     </div>
     <div class="gaugeBox">
       <div id="g4" style="height:150px"></div>
       <div class="label">Qualità Aria (MQ135)</div>
-      <div class="value">Live: <span id="v4">--</span></div>
+      <div class="value" id="v4">--</div>
       <div class="mean">Media oraria: <span id="m4">--</span></div>
     </div>
   </div>
