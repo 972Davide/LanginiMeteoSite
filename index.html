@@ -82,31 +82,32 @@ header h1{
   opacity:.95;
 }
 
-/* ====== ALBA/TRAMONTO ====== */
+/* ====== ALBA/TRAMONTO COUNTDOWN (sopra gauge) ====== */
 #astroCountdown{
   position:absolute;
-  z-index:3;
+  bottom:24%;           /* 👈 appena sopra i gauge */
+  left:50%;
+  transform:translateX(-50%);
   background:rgba(0,0,0,0.6);
-  padding:8px 20px;
-  border-radius:12px;
-  font-size:1.1em;
+  padding:10px 24px;
+  border-radius:14px;
+  font-size:1.2em;
   font-weight:600;
   color:#fff;
-  text-shadow:0 0 5px #000;
-  transform:translate(-50%, -130%);
+  text-shadow:0 0 6px #000;
   box-shadow:0 0 8px rgba(0,0,0,0.4);
-  pointer-events:none;
+  z-index:4;
   animation:float 3s ease-in-out infinite alternate;
 }
 @keyframes float {
-  from { transform:translate(-50%, -130%) translateY(0px); }
-  to   { transform:translate(-50%, -130%) translateY(-3px); }
+  from { transform:translateX(-50%) translateY(0px); }
+  to   { transform:translateX(-50%) translateY(-3px); }
 }
 
 /* ====== GAUGE ====== */
 #gauges{
   position:absolute;
-  bottom:12%;
+  bottom:10%;
   left:50%;
   transform:translateX(-50%);
   width:100%;
@@ -150,6 +151,7 @@ header h1{
 @media (max-width:700px){
   .gaugeBox{width:180px;height:180px;}
   #gauges{gap:10px;padding:15px 0 20px;}
+  #astroCountdown{bottom:30%;font-size:1em;}
   #underGauges{bottom:3%;}
 }
 </style>
@@ -164,6 +166,7 @@ header h1{
   <div id="stars"></div>
   <div id="sun" class="body" style="display:none;"></div>
   <div id="moon" class="body" style="display:none;"></div>
+
   <div id="astroCountdown">...</div>
 
   <div id="gauges">
@@ -238,7 +241,6 @@ function mixColor(c1,c2,p){
   return r+g+b;
 }
 
-// Aggiorna cielo + stelle
 function updateSky(){
   const now=new Date();
   const sunrise=timesToday.sunrise;
@@ -247,7 +249,7 @@ function updateSky(){
   const isDay=(now>=sunrise&&now<sunset);
   const sky=document.getElementById('sky');
 
-  const TW=60*60000; // 1 ora di crepuscolo
+  const TW=60*60000;
   let bg1,bg2;
   if(now>=new Date(sunrise-TW)&&now<new Date(sunrise+TW)){
     const p=timeProgress(sunrise-TW,sunrise+TW,now);
@@ -261,32 +263,11 @@ function updateSky(){
   else{bg1='001028';bg2='002a4f';}
   sky.style.background=`linear-gradient(to bottom,#${bg1},#${bg2})`;
 
-  const sun=document.getElementById('sun');
-  const moon=document.getElementById('moon');
   const stars=document.getElementById('stars');
-  const label=document.getElementById('astroCountdown');
-
-  // Stelle con dissolvenza
   stars.style.opacity = isDay ? '0' : '1';
 
-  if(isDay){
-    sun.style.display='block';moon.style.display='none';
-    const p=timeProgress(sunrise,sunset,now);
-    const x=lerp(-10,110,p);
-    const y=30-15*Math.sin(Math.PI*p);
-    sun.style.left=x+'%'; sun.style.top=y+'%';
-    label.style.left=x+'%'; label.style.top=(y-5)+'%';
-  }else{
-    sun.style.display='none';moon.style.display='block';
-    const moonStart=sunset,moonEnd=nextSunrise;
-    const p=timeProgress(moonStart,moonEnd,now);
-    const x=lerp(-10,110,p);
-    const y=35-10*Math.sin(Math.PI*p);
-    moon.style.left=x+'%'; moon.style.top=y+'%';
-    label.style.left=x+'%'; label.style.top=(y-6)+'%';
-  }
-
-  // Countdown
+  // Countdown fisso
+  const label=document.getElementById('astroCountdown');
   let target,icon;
   if(isDay){target=sunset;icon="☀️";}
   else{target=sunrise>now?sunrise:nextSunrise;icon="🌙";}
