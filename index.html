@@ -64,6 +64,17 @@ header {
   background: radial-gradient(circle at 30% 30%, #f0f0f0 40%, #bdbdbd 100%);
   box-shadow: 0 0 25px 5px #cccccc;
 }
+.cloud {
+  position: absolute;
+  background: rgba(255,255,255,0.8);
+  border-radius: 50%;
+  opacity: 0.7;
+  animation: moveCloud linear infinite;
+}
+@keyframes moveCloud {
+  from { transform: translateX(-200px); }
+  to { transform: translateX(110vw); }
+}
 #sunMoonTimes {
   font-size: 1em;
   color: #a9c9ff;
@@ -192,6 +203,25 @@ const API_KEY = "4EGG4DXUFDU6FUGN";
 const LAT = 45.77;
 const LON = 8.88;
 
+// === Crea nuvole dinamiche ===
+function creaNuvole() {
+  const sky = document.getElementById("sky");
+  for (let i=0; i<8; i++) {
+    const c = document.createElement("div");
+    c.className = "cloud";
+    const w = 100 + Math.random()*120;
+    const h = 50 + Math.random()*30;
+    c.style.width = w + "px";
+    c.style.height = h + "px";
+    c.style.top = Math.random()*40 + "%";
+    c.style.left = Math.random()*100 + "%";
+    c.style.animationDuration = (50 + Math.random()*40) + "s";
+    c.style.opacity = 0.5 + Math.random()*0.3;
+    sky.appendChild(c);
+  }
+}
+creaNuvole();
+
 // === Calcolo Alba/Tramonto ===
 function calcolaAlbaTramonto(lat, lon, date = new Date()) {
   const rad = Math.PI / 180;
@@ -236,17 +266,17 @@ function aggiornaCielo() {
   document.getElementById("sunMoonTimes").innerHTML =
     `☀️ Alba: ${minutiToOra(alba)} • 🌇 Tramonto: ${minutiToOra(tramonto)}`;
 
+  // giorno: sole
   if (oraAttuale >= alba && oraAttuale < tramonto) {
     const progress = (oraAttuale - alba) / (tramonto - alba);
     const left = 5 + progress * 90;
-    const top = 50 - 30 * Math.sin(progress * Math.PI);
+    const top = 55 - 25 * Math.sin(progress * Math.PI); // massimo a metà
     sun.style.left = left + "%";
     sun.style.top = top + "%";
     sun.style.display = "block";
     moon.style.display = "none";
     document.body.style.background = "linear-gradient(to bottom, #00aaff 0%, #87ceeb 60%, #0099ff 100%)";
-    document.body.style.filter = "brightness(1)";
-  } else {
+  } else { // notte: luna
     let progress;
     if (oraAttuale >= tramonto)
       progress = (oraAttuale - tramonto) / ((24*60 - tramonto) + alba);
@@ -259,7 +289,6 @@ function aggiornaCielo() {
     moon.style.display = "block";
     sun.style.display = "none";
     document.body.style.background = "linear-gradient(to bottom, #000820 0%, #001b40 60%, #002860 100%)";
-    document.body.style.filter = "brightness(0.6)";
   }
 }
 function minutiToOra(m) {
@@ -270,7 +299,7 @@ function minutiToOra(m) {
 setInterval(aggiornaCielo, 60000);
 setTimeout(aggiornaCielo, 500);
 
-// Oscillazione
+// Oscillazione dolce Sole/Luna
 let angle = 0;
 setInterval(() => {
   const sun = document.getElementById("sun");
@@ -324,5 +353,3 @@ setInterval(aggiorna, 30000);
 </script>
 </body>
 </html>
-
-
