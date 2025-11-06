@@ -206,15 +206,31 @@ function updateSky(){
     sun.style.opacity=0;
   }
 
-  // countdown sincronizzato
-  let target,icon;
-  if(isDay){target=sunset;icon="☀️ Tramonto tra";}
-  else{target=sunrise>now?sunrise:nextSunrise;icon="🌙 Alba tra";}
-  const diff=target-now;
-  const h=Math.floor(diff/3600000);
-  const m=Math.floor((diff%3600000)/60000);
-  label.innerHTML=`${icon} <b>${h}h ${m}min</b>`;
-}
+  // countdown sincronizzato (corretto)
+  let target, icon, labelText;
+  if (isDay) {
+    // se è giorno → countdown fino al tramonto
+    target = sunset;
+    icon = "☀️ Tramonto tra";
+    labelText = "Tramonto tra";
+  } else {
+    // se è notte → se l'alba di oggi è già passata, usa quella di domani
+    const nextTarget = (now > sunrise) ? nextSunrise : sunrise;
+    target = nextTarget;
+    icon = "🌙 Alba tra";
+    labelText = "Alba tra";
+  }
+
+  const diff = target - now;
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+
+  const positiveH = Math.max(h, 0);
+  const positiveM = Math.max(m, 0);
+
+  label.innerHTML = `${icon} <b>${positiveH}h ${positiveM}min</b>`;
+
+
 updateSky();
 setInterval(updateSky,30000);
 
