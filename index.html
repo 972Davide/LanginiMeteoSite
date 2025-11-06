@@ -18,6 +18,7 @@ body {
   text-align: center;
   overflow-x: hidden;
   min-height: 100vh;
+  transition: background 2s ease;
 }
 header {
   background: rgba(153,152,168,0.9);
@@ -31,17 +32,16 @@ header {
   position: relative;
   height: 45vh;
   overflow: hidden;
-  background: linear-gradient(to bottom, #003060, #0070c0);
 }
 #sun, #moon {
   position: absolute;
-  top: 20%;
+  top: 40%;
   left: 50%;
-  transform: translate(-50%, -50%);
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  animation: float 6s ease-in-out infinite;
+  transform: translate(-50%, -50%);
+  transition: all 3s ease;
 }
 #sun {
   background: radial-gradient(circle, #fff600 20%, #ffcc00 70%, #ffaa00 100%);
@@ -51,14 +51,8 @@ header {
   background: radial-gradient(circle at 30% 30%, #f0f0f0 40%, #bdbdbd 100%);
   box-shadow: 0 0 25px 5px #cccccc;
 }
-@keyframes float {
-  0% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-50%, -60%) scale(1.1); }
-  100% { transform: translate(-50%, -50%) scale(1); }
-}
 #gauges {
   position: relative;
-  bottom: 0;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -119,8 +113,8 @@ a:hover {
 <header>🌤️ Langini Meteo Online</header>
 
 <div id="sky">
-  <div id="sun" style="display:none;"></div>
-  <div id="moon" style="display:none;"></div>
+  <div id="sun"></div>
+  <div id="moon"></div>
 </div>
 
 <div id="gauges">
@@ -161,20 +155,37 @@ Aggiornamento automatico ogni 30 s<br>
 const CHANNEL_ID = 3149218;
 const API_KEY = "4EGG4DXUFDU6FUGN";
 
-// === Sole/Luna dinamici ===
+// === Movimento Sole e Luna dinamico ===
 function aggiornaCielo() {
-  const ora = new Date().getHours();
+  const now = new Date();
+  const ora = now.getHours() + now.getMinutes() / 60;
   const sun = document.getElementById("sun");
   const moon = document.getElementById("moon");
 
+  let left, top;
+
   if (ora >= 6 && ora < 18) {
+    // Giorno → movimento sole
+    const progress = (ora - 6) / 12; // da 0 a 1
+    left = progress * 100; // 0% a 100%
+    top = 40 - 20 * Math.sin(progress * Math.PI); // arco alto a metà giornata
+    sun.style.left = left + "%";
+    sun.style.top = top + "%";
     sun.style.display = "block";
     moon.style.display = "none";
-    document.body.style.background = "linear-gradient(to bottom, #0099ff 0%, #0055aa 100%)";
+    document.body.style.background =
+      "linear-gradient(to bottom, #00aaff 0%, #87ceeb 60%, #0099ff 100%)";
   } else {
-    sun.style.display = "none";
+    // Notte → movimento luna
+    const progress = ora >= 18 ? (ora - 18) / 12 : (ora + 6) / 12;
+    left = progress * 100;
+    top = 45 - 15 * Math.sin(progress * Math.PI);
+    moon.style.left = left + "%";
+    moon.style.top = top + "%";
     moon.style.display = "block";
-    document.body.style.background = "linear-gradient(to bottom, #001030 0%, #002850 100%)";
+    sun.style.display = "none";
+    document.body.style.background =
+      "linear-gradient(to bottom, #000820 0%, #001b40 60%, #002860 100%)";
   }
 }
 aggiornaCielo();
@@ -217,10 +228,7 @@ async function aggiorna() {
       f4: parseFloat(f.field4)
     }));
 
-    // ultimo valore (LIVE)
     const ultimo = feeds[feeds.length - 1];
-
-    // medie orarie
     const media = arr => (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1);
     const medie = {
       m1: media(feeds.map(f=>f.f1)),
@@ -229,13 +237,11 @@ async function aggiorna() {
       m4: media(feeds.map(f=>f.f4))
     };
 
-    // Aggiorna gauge
     g1.refresh(ultimo.f1);
     g2.refresh(ultimo.f2);
     g3.refresh(ultimo.f3);
     g4.refresh(ultimo.f4);
 
-    // Aggiorna testi
     document.getElementById("v1").textContent = ultimo.f1.toFixed(1);
     document.getElementById("v2").textContent = ultimo.f2.toFixed(1);
     document.getElementById("v3").textContent = ultimo.f3.toFixed(1);
@@ -248,7 +254,6 @@ async function aggiorna() {
     console.error("Errore durante aggiornamento:", e);
   }
 }
-
 aggiorna();
 setInterval(aggiorna, 30000);
 </script>
