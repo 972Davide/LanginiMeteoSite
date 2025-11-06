@@ -82,21 +82,21 @@ header h1{
   opacity:.95;
 }
 
-/* ====== ALBA/TRAMONTO COUNTDOWN (sopra gauge) ====== */
+/* ====== ALBA/TRAMONTO COUNTDOWN ====== */
 #astroCountdown{
   position:absolute;
-  bottom:24%;           /* 👈 appena sopra i gauge */
+  bottom:33%;             /* 🔹 alzato sopra i gauge */
   left:50%;
   transform:translateX(-50%);
   background:rgba(0,0,0,0.6);
-  padding:10px 24px;
+  padding:10px 26px;
   border-radius:14px;
   font-size:1.2em;
   font-weight:600;
   color:#fff;
   text-shadow:0 0 6px #000;
   box-shadow:0 0 8px rgba(0,0,0,0.4);
-  z-index:4;
+  z-index:5;
   animation:float 3s ease-in-out infinite alternate;
 }
 @keyframes float {
@@ -107,11 +107,11 @@ header h1{
 /* ====== GAUGE ====== */
 #gauges{
   position:absolute;
-  bottom:10%;
+  bottom:8%;
   left:50%;
   transform:translateX(-50%);
   width:100%;
-  z-index:5;
+  z-index:4;
   display:flex;
   flex-wrap:wrap;
   justify-content:center;
@@ -131,7 +131,7 @@ header h1{
 .value{font-size:1.1em;font-weight:700;color:#fff}
 .mean{font-size:.95em;color:#a0c4ff}
 
-/* ====== SOTTO GAUGE ====== */
+/* ====== FOOTER ====== */
 #underGauges{
   position:absolute;
   bottom:2%;
@@ -151,7 +151,7 @@ header h1{
 @media (max-width:700px){
   .gaugeBox{width:180px;height:180px;}
   #gauges{gap:10px;padding:15px 0 20px;}
-  #astroCountdown{bottom:30%;font-size:1em;}
+  #astroCountdown{bottom:38%;font-size:1em;}
   #underGauges{bottom:3%;}
 }
 </style>
@@ -264,9 +264,24 @@ function updateSky(){
   sky.style.background=`linear-gradient(to bottom,#${bg1},#${bg2})`;
 
   const stars=document.getElementById('stars');
-  stars.style.opacity = isDay ? '0' : '1';
+  const sun=document.getElementById('sun');
+  const moon=document.getElementById('moon');
+  stars.style.opacity=isDay?'0':'1';
 
-  // Countdown fisso
+  if(isDay){
+    sun.style.display='block';moon.style.display='none';
+    const p=timeProgress(sunrise,sunset,now);
+    const x=lerp(-10,110,p);
+    const y=30-15*Math.sin(Math.PI*p);
+    sun.style.left=x+'%';sun.style.top=y+'%';
+  }else{
+    sun.style.display='none';moon.style.display='block';
+    const p=timeProgress(sunset,nextSunrise,now);
+    const x=lerp(-10,110,p);
+    const y=35-10*Math.sin(Math.PI*p);
+    moon.style.left=x+'%';moon.style.top=y+'%';
+  }
+
   const label=document.getElementById('astroCountdown');
   let target,icon;
   if(isDay){target=sunset;icon="☀️";}
