@@ -105,8 +105,14 @@ header {
 
 #sunMoonTimes {
   font-size: 1em;
-  color: #a9c9ff;
-  margin: 8px 0;
+  color: #000;               /* testo nero */
+  background: rgba(255,255,255,0.6); /* leggero sfondo bianco semi-trasparente */
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  margin: 8px auto;
+  box-shadow: 0 0 6px rgba(0,0,0,0.25);
+  font-weight: 600;
 }
 
 /* Gauge */
@@ -289,6 +295,16 @@ function aggiornaCielo(){
 
   const sun=document.getElementById("sun"),moon=document.getElementById("moon"),stars=document.getElementById("stars");
   const isDay=curr>=alba&&curr<tramonto;
+
+  const infoBox = document.getElementById("sunMoonTimes");
+if (isDay) {
+  infoBox.style.color = "#000";
+  infoBox.style.background = "rgba(255,255,255,0.6)";
+} else {
+  infoBox.style.color = "#fff";
+  infoBox.style.background = "rgba(0,0,0,0.5)";
+}
+
 
   if(isDay){
     document.body.style.background="linear-gradient(to bottom,#00aaff 0%,#87ceeb 60%,#0099ff 100%)";
