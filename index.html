@@ -203,7 +203,7 @@ const API_KEY = "4EGG4DXUFDU6FUGN";
 const LAT = 45.77;
 const LON = 8.88;
 
-// === Nuvole dinamiche ===
+// === Crea nuvole dinamiche ===
 function creaNuvole() {
   const sky = document.getElementById("sky");
   for (let i=0; i<8; i++) {
@@ -222,7 +222,7 @@ function creaNuvole() {
 }
 creaNuvole();
 
-// === Calcolo Alba/Tramonto corretto ===
+// === Calcolo Alba/Tramonto ===
 function calcolaAlbaTramonto(lat, lon, date = new Date()) {
   const rad = Math.PI / 180;
   const n = Math.floor(date.getTime() / 86400000 - date.getTimezoneOffset()/1440 + 2440587.5) - 2451545.0;
@@ -247,9 +247,7 @@ function calcolaAlbaTramonto(lat, lon, date = new Date()) {
     const H = (isSunrise ? 360 - Math.acos(cosH)/rad : Math.acos(cosH)/rad) / 15;
     const T = H + RA/15 - 0.06571*t - 6.622;
     const UT = (T - lngHour + 24) % 24;
-
-    // ✅ Correzione fuso orario reale
-    const localT = UT + (new Date().getTimezoneOffset() / -60);
+    const localT = UT + 1; // UTC+1
     return localT * 60; // minuti
   }
 
@@ -294,7 +292,7 @@ function aggiornaCielo() {
   }
 }
 function minutiToOra(m) {
-  const h = Math.floor((m / 60) % 24);
+  const h = Math.floor(m / 60);
   const min = Math.floor(m % 60);
   return `${String(h).padStart(2,"0")}:${String(min).padStart(2,"0")}`;
 }
