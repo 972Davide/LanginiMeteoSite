@@ -198,4 +198,49 @@ setInterval(aggiornaCielo,60000);window.onload=aggiornaCielo;
 
 // --- Sole/luna rotazione ---
 let angle=0;setInterval(()=>{angle+=0.04;
-const s=document.getElementById("sun"),m=document.getElementBy
+const s=document.getElementById("sun"),m=document.getElementById("moon");
+(s.style.opacity>0.5?s:m).style.transform=`translate(-50%,-50%) rotate(${angle}rad)`;},120);
+
+// --- Testo scorrevole random ---
+function mostraScroller(){const el=document.getElementById("scroller");
+const day=document.getElementById("sun").style.opacity>0.5;
+el.style.color=day?"#000":"#fff";el.style.textShadow=day?"0 0 8px rgba(255,255,255,0.6)":"0 0 8px rgba(0,0,0,0.6)";
+el.style.animation="scrollText 15s linear forwards";setTimeout(()=>{el.style.animation="none";},16000);}
+(function loop(){const d=30000+Math.random()*60000;setTimeout(()=>{mostraScroller();loop();},d);})();
+
+// --- Gauges ---
+const g1=new JustGage({id:"g1",value:0,min:950,max:1050,pointer:true});
+const g2=new JustGage({id:"g2",value:0,min:-10,max:50,pointer:true});
+const g3=new JustGage({id:"g3",value:0,min:0,max:100,pointer:true});
+const g4=new JustGage({id:"g4",value:0,min:0,max:500,pointer:true});
+async function aggiorna(){
+ try{
+  const r=await fetch(`https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?results=60`);
+  const d=await r.json();if(!d.feeds||!d.feeds.length){document.getElementById("statusBar").textContent="⚠️ Nessun dato disponibile";return;}
+  const f=d.feeds.map(e=>({f1:+e.field1,f2:+e.field2,f3:+e.field3,f4:+e.field4})),u=f.at(-1);
+  const avg=a=>{const v=a.filter(x=>!isNaN(x));return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):"--";};
+  g1.refresh(u.f1);g2.refresh(u.f2);g3.refresh(u.f3);g4.refresh(u.f4);
+  ["v1","v2","v3","v4"].forEach((id,i)=>document.getElementById(id).textContent=isNaN(u[`f${i+1}`])?"--":u[`f${i+1}`].toFixed(1));
+  ["m1","m2","m3","m4"].forEach((id,i)=>document.getElementById(id).textContent=avg(f.map(x=>x[`f${i+1}`])));
+  document.getElementById("statusBar").textContent=`✅ Aggiornato alle ${new Date().toLocaleTimeString("it-IT")}`;
+ }catch(e){document.getElementById("statusBar").textContent="⚠️ Errore connessione";console.error(e);}
+}
+aggiorna();setInterval(aggiorna,30000);
+
+// --- 🔔 Rintocchi ogni ora ---
+function suonaCampane(){
+ const now=new Date(),h=now.getHours();
+ if(h<7||h>22)return;
+ const audio=document.getElementById("campana");
+ const numRintocchi=h===0?12:h;let i=0;
+ function playRintocco(){if(i>=numRintocchi)return;
+  audio.currentTime=0;audio.play().catch(()=>{});i++;
+  setTimeout(playRintocco,1800);}
+ playRintocco();
+}
+let ultimaOra=new Date().getHours();
+setInterval(()=>{const now=new Date();
+ if(now.getMinutes()===0&&now.getHours()!==ultimaOra){suonaCampane();ultimaOra=now.getHours();}},15000);
+</script>
+</body>
+</html>
