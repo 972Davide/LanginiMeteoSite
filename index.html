@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Langini Meteo – Dashboard V6.6</title>
+<title>Langini Meteo – Dashboard V6.7</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/raphael@2.3.0/raphael.min.js"></script>
@@ -108,9 +108,12 @@ header{
   transition:all 1s ease;
 }
 
-/* 🧭 Gauge Section - Ridotta */
+/* 🧭 Gauge Section */
 #gauges{
-  display:flex;flex-wrap:wrap;justify-content:center;gap:22px;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:22px;
   padding:20px 0 30px;
   background:linear-gradient(to bottom,#002850,#00142c);
   border-top:3px solid #004b8d;
@@ -127,11 +130,26 @@ header{
 .label{font-size:1.05em;font-weight:600;margin-top:6px;}
 .mean{font-size:0.88em;color:#444;margin-top:6px;}
 footer{font-size:0.9em;color:#a9c9ff;background:#001b3a;padding:10px;}
+
+/* 📱 Versione mobile */
+@media (max-width:768px){
+  #gauges{gap:18px;}
+  .gaugeBox{width:45%;height:220px;padding:6px;}
+  .label{font-size:0.95em;}
+  .mean{font-size:0.82em;}
+}
+@media (max-width:480px){
+  #gauges{flex-direction:column;align-items:center;}
+  .gaugeBox{width:85%;height:210px;}
+  #ariaAlert{font-size:1.1em;padding:8px 20px;}
+  #sunMoonTimes{font-size:0.95em;padding:4px 10px;}
+  header{font-size:1.3em;}
+}
 </style>
 </head>
 
 <body>
-<header>🌤️ Langini Meteo – Dashboard V6.6<br><div id="logo">by Langini D.</div></header>
+<header>🌤️ Langini Meteo – Dashboard V6.7<br><div id="logo">by Langini D.</div></header>
 <div id="statusBar">Caricamento dati...</div>
 
 <div id="sky">
@@ -147,35 +165,12 @@ footer{font-size:0.9em;color:#a9c9ff;background:#001b3a;padding:10px;}
 <!-- ☀️ Barra Alba/Tramonto -->
 <div id="sunMoonTimes">☀️ Alba: --:-- • 🌇 Tramonto: --:--</div>
 
-<!-- 🧭 Gauges (ridotti) -->
+<!-- 🧭 Gauges -->
 <div id="gauges">
-  <div class="gaugeBox">
-    <img src="https://img.icons8.com/fluency/48/barometer.png">
-    <div id="g1" style="height:130px"></div>
-    <div class="label">Pressione (hPa)</div>
-    <div class="mean">Media oraria: <span id="m1">--</span></div>
-  </div>
-
-  <div class="gaugeBox">
-    <img src="https://img.icons8.com/fluency/48/temperature.png">
-    <div id="g2" style="height:130px"></div>
-    <div class="label">Temperatura (°C)</div>
-    <div class="mean">Media oraria: <span id="m2">--</span></div>
-  </div>
-
-  <div class="gaugeBox">
-    <img src="https://img.icons8.com/fluency/48/hygrometer.png">
-    <div id="g3" style="height:130px"></div>
-    <div class="label">Umidità (%)</div>
-    <div class="mean">Media oraria: <span id="m3">--</span></div>
-  </div>
-
-  <div class="gaugeBox">
-    <img src="https://img.icons8.com/fluency/48/smelling.png">
-    <div id="g4" style="height:130px"></div>
-    <div class="label">Qualità Aria (MQ135)</div>
-    <div class="mean">Media oraria: <span id="m4">--</span></div>
-  </div>
+  <div class="gaugeBox"><img src="https://img.icons8.com/fluency/48/barometer.png"><div id="g1" style="height:130px"></div><div class="label">Pressione (hPa)</div><div class="mean">Media oraria: <span id="m1">--</span></div></div>
+  <div class="gaugeBox"><img src="https://img.icons8.com/fluency/48/temperature.png"><div id="g2" style="height:130px"></div><div class="label">Temperatura (°C)</div><div class="mean">Media oraria: <span id="m2">--</span></div></div>
+  <div class="gaugeBox"><img src="https://img.icons8.com/fluency/48/hygrometer.png"><div id="g3" style="height:130px"></div><div class="label">Umidità (%)</div><div class="mean">Media oraria: <span id="m3">--</span></div></div>
+  <div class="gaugeBox"><img src="https://img.icons8.com/fluency/48/smelling.png"><div id="g4" style="height:130px"></div><div class="label">Qualità Aria (MQ135)</div><div class="mean">Media oraria: <span id="m4">--</span></div></div>
 </div>
 
 <footer>© 2025 Langini Meteo • Aggiornamento ogni 30 s</footer>
@@ -193,7 +188,7 @@ for(let i=0;i<40;i++){let e=document.createElement('div');e.className='star';
 e.style.left=Math.random()*100+'%';e.style.top=Math.random()*100+'%';
 e.style.animationDelay=Math.random()*3+'s';s.appendChild(e);}})();
 
-// ✈️ Aereo animato
+// ✈️ Aereo
 function volaAereo(){
   const plane=document.getElementById('plane');
   const topPos=20+Math.random()*40;
@@ -233,7 +228,7 @@ function aggiornaCielo(){
 setInterval(aggiornaCielo,60000);
 window.onload=()=>{aggiornaCielo();volaAereo();};
 
-// 🌫️ Aggiornamento dati
+// 🌫️ Dati
 async function aggiorna(){
  try{
   const r=await fetch(`https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?results=60`);
