@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Langini Meteo – Dashboard V5.7</title>
+<title>Langini Meteo – Dashboard V5.8</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/raphael@2.3.0/raphael.min.js"></script>
@@ -25,6 +25,10 @@ box-shadow:0 2px 10px rgba(0,0,0,0.25);}
 transform:translate(-50%,-50%);transition:left 1.5s,top 1.5s,opacity 2s;z-index:2;opacity:0;}
 #sun{background:radial-gradient(circle,#fff600 20%,#ffcc00 70%,#ffaa00 100%);box-shadow:0 0 40px 10px #ffcc00;}
 #moon{background:radial-gradient(circle at 31% 32%,#f0f0f0 40%,#bdbdbd 100%);box-shadow:0 0 25px 5px #ccc;}
+.cloud{position:absolute;background:rgba(255,255,255,0.8);border-radius:50%;
+box-shadow:-30px 10px 30px rgba(255,255,255,0.7),40px 15px 40px rgba(255,255,255,0.6),
+70px 20px 60px rgba(255,255,255,0.5);animation:fluttuare 6s ease-in-out infinite alternate;z-index:1;}
+@keyframes fluttuare{from{transform:translateY(0)}to{transform:translateY(8px)}}
 
 /* ✈️ Aereo */
 #plane{position:absolute;top:25%;left:-150px;width:120px;height:40px;
@@ -33,22 +37,26 @@ z-index:3;opacity:0.9;filter:drop-shadow(0 0 6px rgba(255,255,255,0.7));}
 
 /* 🌫️ Banner AQI */
 #ariaAlert{
+  position:relative;
+  top:-8px;
   display:inline-block;
-  margin:14px auto 0;
   padding:10px 28px;
   border-radius:22px;
   font-size:1.4em;
   font-weight:700;
   color:#fff;
-  box-shadow:0 0 16px rgba(0,0,0,0.3);
+  background:#00e400;
+  box-shadow:0 0 20px rgba(0,0,0,0.4);
   transition:all 0.8s ease;
+  animation:none;
+  z-index:5;
 }
 @keyframes blinkAir{from{opacity:0.6;}to{opacity:1;}}
-@keyframes pulseDanger{0%,100%{box-shadow:0 0 22px 8px rgba(102,0,153,0.8);}50%{box-shadow:0 0 36px 14px rgba(255,0,255,0.7);}}
+@keyframes pulseDanger{0%,100%{box-shadow:0 0 25px 8px rgba(102,0,153,0.8);}50%{box-shadow:0 0 40px 16px rgba(255,0,255,0.7);}}
 
 /* Resto UI */
 #sunMoonTimes{font-size:1em;color:#000;background:rgba(255,255,255,0.6);display:inline-block;
-padding:4px 10px;border-radius:12px;margin:8px auto;box-shadow:0 0 6px rgba(0,0,0,0.25);
+padding:4px 10px;border-radius:12px;margin:10px auto;box-shadow:0 0 6px rgba(0,0,0,0.25);
 font-weight:600;transition:all 1s ease;}
 #gauges{display:flex;flex-wrap:wrap;justify-content:center;gap:26px;
 padding:30px 0 40px;background:linear-gradient(to bottom,#002850,#00142c);border-top:3px solid #004b8d;}
@@ -63,7 +71,7 @@ footer{font-size:0.93em;color:#a9c9ff;background:#001b3a;padding:10px;}
 </head>
 
 <body>
-<header>🌤️ Langini Meteo – Dashboard V5.7<br><div id="logo">by Langini D.</div></header>
+<header>🌤️ Langini Meteo – Dashboard V5.8<br><div id="logo">by Langini D.</div></header>
 <div id="statusBar">Caricamento dati...</div>
 
 <div id="sky">
@@ -73,6 +81,7 @@ footer{font-size:0.93em;color:#a9c9ff;background:#001b3a;padding:10px;}
   <div id="plane"></div>
 </div>
 
+<!-- 🌫️ Banner Qualità Aria sopra la linea blu -->
 <div id="ariaAlert">🌿 Aria eccellente</div>
 
 <div id="sunMoonTimes">☀️ Alba: --:-- • 🌇 Tramonto: --:--</div>
