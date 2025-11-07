@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Langini Meteo – Dashboard V7.2</title>
+<title>Langini Meteo – Dashboard V7.3</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/raphael@2.3.0/raphael.min.js"></script>
@@ -49,17 +49,17 @@ header{
 }
 @keyframes fluttuare{from{transform:translateY(0)}to{transform:translateY(8px)}}
 
-/* ✈️ Aereo + scia */
+/* ✈️ Aereo nero + scia bianca */
 #plane{
   position:absolute;top:25%;left:-180px;width:130px;height:50px;
-  background:url('https://upload.wikimedia.org/wikipedia/commons/4/47/Airplane_icon_white.svg') no-repeat center/contain;
-  z-index:5;opacity:0.95;filter:drop-shadow(0 0 8px rgba(255,255,255,0.9));
+  background:url('https://upload.wikimedia.org/wikipedia/commons/0/0e/Airplane_silhouette.svg') no-repeat center/contain;
+  z-index:5;opacity:0.95;filter:drop-shadow(0 0 6px rgba(0,0,0,0.8));
   transition:transform 2s ease-out,left 25s linear;
 }
 .trail{
   position:absolute;height:5px;
-  background:linear-gradient(90deg,rgba(255,255,255,0.7),rgba(255,255,255,0));
-  border-radius:3px;z-index:3;opacity:0.5;pointer-events:none;
+  background:linear-gradient(90deg,rgba(255,255,255,0.85),rgba(255,255,255,0));
+  border-radius:3px;z-index:3;opacity:0.6;pointer-events:none;
 }
 
 /* 🐦 Uccelli */
@@ -121,7 +121,7 @@ footer{font-size:0.9em;color:#a9c9ff;background:#001b3a;padding:10px;}
 </head>
 
 <body>
-<header>🌤️ Langini Meteo – Dashboard V7.2<br><div id="logo">by Langini D.</div></header>
+<header>🌤️ Langini Meteo – Dashboard V7.3<br><div id="logo">by Langini D.</div></header>
 <div id="statusBar">Caricamento dati...</div>
 
 <div id="sky">
@@ -131,12 +131,9 @@ footer{font-size:0.9em;color:#a9c9ff;background:#001b3a;padding:10px;}
   <div id="plane"></div>
 </div>
 
-<!-- 🌫️ Banner -->
 <div id="ariaAlert">🌿 Aria eccellente</div>
-<!-- ☀️ Alba/Tramonto -->
 <div id="sunMoonTimes">☀️ Alba: --:-- • 🌇 Tramonto: --:--</div>
 
-<!-- 🧭 Gauges -->
 <div id="gauges">
   <div class="gaugeBox"><img src="https://img.icons8.com/fluency/48/barometer.png"><div id="g1" style="height:130px"></div><div class="label">Pressione (hPa)</div><div class="mean">Media oraria: <span id="m1">--</span></div></div>
   <div class="gaugeBox"><img src="https://img.icons8.com/fluency/48/temperature.png"><div id="g2" style="height:130px"></div><div class="label">Temperatura (°C)</div><div class="mean">Media oraria: <span id="m2">--</span></div></div>
@@ -153,7 +150,21 @@ const g2=new JustGage({id:"g2",value:0,min:-10,max:50,pointer:true});
 const g3=new JustGage({id:"g3",value:0,min:0,max:100,pointer:true});
 const g4=new JustGage({id:"g4",value:0,min:0,max:500,pointer:true});
 
-function creaNuvola(){const sky=document.getElementById("sky");const c=document.createElement("div");c.className="cloud";const s=0.8+Math.random()*1.4;c.style.width=(80+Math.random()*160)*s+"px";c.style.height=(35+Math.random()*45)*s+"px";c.style.top=(10+Math.random()*60)+"%";c.style.left="-250px";c.style.opacity=0.4+Math.random()*0.4;sky.appendChild(c);const dur=30000+Math.random()*40000;c.animate([{transform:"translateX(0)"},{transform:`translateX(${window.innerWidth+400}px)`}],{duration:dur,easing:"linear"}).onfinish=()=>{c.remove();setTimeout(creaNuvola,4000+Math.random()*3000);};}
+function creaNuvola(){
+  const sky=document.getElementById("sky");
+  const c=document.createElement("div");
+  c.className="cloud";
+  const s=0.8+Math.random()*1.4;
+  c.style.width=(80+Math.random()*160)*s+"px";
+  c.style.height=(35+Math.random()*45)*s+"px";
+  c.style.top=(10+Math.random()*60)+"%";
+  c.style.left="-250px";
+  c.style.opacity=0.4+Math.random()*0.4;
+  sky.appendChild(c);
+  const dur=30000+Math.random()*40000;
+  c.animate([{transform:"translateX(0)"},{transform:`translateX(${window.innerWidth+400}px)`}],
+  {duration:dur,easing:"linear"}).onfinish=()=>{c.remove();setTimeout(creaNuvola,4000+Math.random()*3000);};
+}
 
 function volaAereo(){
   const sky=document.getElementById('sky');
@@ -163,23 +174,19 @@ function volaAereo(){
   plane.style.left='-180px';
   plane.style.transition='none';
   plane.offsetHeight;
-  plane.style.transition='transform 2s ease-out,left 25s linear';
-  plane.style.left='110%';
-  
-  // Rotazione casuale (inclinazione realistica)
   const tilt=Math.random()>0.5?10:-10;
   plane.style.transform=`rotate(${tilt}deg)`;
   setTimeout(()=>plane.style.transform='rotate(0deg)',22000);
-
-  // Scia
+  plane.style.transition='transform 2s ease-out,left 25s linear';
+  plane.style.left='110%';
   const trail=document.createElement('div');
   trail.className='trail';
   trail.style.top=`calc(${topPos}% + 25px)`;
   trail.style.left='-180px';
   trail.style.width='0px';
   sky.appendChild(trail);
-  trail.animate([{width:'0px',opacity:0.8},{width:window.innerWidth+'px',opacity:0.1}],{duration:25000,easing:'linear'}).onfinish=()=>trail.remove();
-  
+  trail.animate([{width:'0px',opacity:0.9},{width:window.innerWidth+'px',opacity:0.15}],
+  {duration:25000,easing:'linear'}).onfinish=()=>trail.remove();
   setTimeout(volaAereo,35000+Math.random()*40000);
 }
 
@@ -192,7 +199,8 @@ function creaUccello(){
   b.style.transform=`scale(${0.7+Math.random()*0.6})`;
   sky.appendChild(b);
   const dur=15000+Math.random()*12000;
-  b.animate([{transform:"translateX(0)"},{transform:`translateX(${window.innerWidth+200}px)`}],{duration:dur,easing:"linear"}).onfinish=()=>{b.remove();setTimeout(creaUccello,4000+Math.random()*7000);};
+  b.animate([{transform:"translateX(0)"},{transform:`translateX(${window.innerWidth+200}px)`}],
+  {duration:dur,easing:"linear"}).onfinish=()=>{b.remove();setTimeout(creaUccello,4000+Math.random()*7000);};
 }
 
 function aggiornaCielo(){
