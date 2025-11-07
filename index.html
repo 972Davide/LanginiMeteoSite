@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Langini Meteo – Dashboard V5.8</title>
+<title>Langini Meteo – Dashboard V5.9</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/raphael@2.3.0/raphael.min.js"></script>
@@ -37,9 +37,8 @@ z-index:3;opacity:0.9;filter:drop-shadow(0 0 6px rgba(255,255,255,0.7));}
 
 /* 🌫️ Banner AQI */
 #ariaAlert{
-  position:relative;
-  top:-8px;
   display:inline-block;
+  margin-top:14px;
   padding:10px 28px;
   border-radius:22px;
   font-size:1.4em;
@@ -56,7 +55,7 @@ z-index:3;opacity:0.9;filter:drop-shadow(0 0 6px rgba(255,255,255,0.7));}
 
 /* Resto UI */
 #sunMoonTimes{font-size:1em;color:#000;background:rgba(255,255,255,0.6);display:inline-block;
-padding:4px 10px;border-radius:12px;margin:10px auto;box-shadow:0 0 6px rgba(0,0,0,0.25);
+padding:4px 10px;border-radius:12px;margin:10px auto 0;box-shadow:0 0 6px rgba(0,0,0,0.25);
 font-weight:600;transition:all 1s ease;}
 #gauges{display:flex;flex-wrap:wrap;justify-content:center;gap:26px;
 padding:30px 0 40px;background:linear-gradient(to bottom,#002850,#00142c);border-top:3px solid #004b8d;}
@@ -71,7 +70,7 @@ footer{font-size:0.93em;color:#a9c9ff;background:#001b3a;padding:10px;}
 </head>
 
 <body>
-<header>🌤️ Langini Meteo – Dashboard V5.8<br><div id="logo">by Langini D.</div></header>
+<header>🌤️ Langini Meteo – Dashboard V5.9<br><div id="logo">by Langini D.</div></header>
 <div id="statusBar">Caricamento dati...</div>
 
 <div id="sky">
@@ -81,7 +80,7 @@ footer{font-size:0.93em;color:#a9c9ff;background:#001b3a;padding:10px;}
   <div id="plane"></div>
 </div>
 
-<!-- 🌫️ Banner Qualità Aria sopra la linea blu -->
+<!-- 🌫️ Banner Qualità Aria ora sopra Alba/Tramonto -->
 <div id="ariaAlert">🌿 Aria eccellente</div>
 
 <div id="sunMoonTimes">☀️ Alba: --:-- • 🌇 Tramonto: --:--</div>
