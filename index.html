@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Langini Meteo – Dashboard V5.4</title>
+<title>Langini Meteo – Dashboard V5.4.1</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/raphael@2.3.0/raphael.min.js"></script>
@@ -46,7 +46,7 @@ animation:fadeBanner 20s ease forwards, glowTramonto 3s infinite alternate;}
 @keyframes glowAlba{from{box-shadow:0 0 20px 6px rgba(255,204,51,0.6);}to{box-shadow:0 0 40px 12px rgba(255,153,0,0.8);}}
 @keyframes glowTramonto{from{box-shadow:0 0 20px 6px rgba(255,102,153,0.6);}to{box-shadow:0 0 40px 12px rgba(255,0,51,0.8);}}
 
-/* Avviso Qualità Aria sopra linea blu */
+/* Avviso Qualità Aria sopra la linea blu */
 #ariaAlert{
   display:none;
   font-size:1.5em;
@@ -55,7 +55,7 @@ animation:fadeBanner 20s ease forwards, glowTramonto 3s infinite alternate;}
   color:#ffcc00;
   background:rgba(0,0,0,0.3);
   border-radius:20px;
-  margin:10px auto 0;
+  margin:12px auto 0;
   width:max-content;
   animation:blinkAlert 1.4s infinite alternate;
   text-shadow:0 0 10px rgba(255,200,0,0.9);
@@ -65,6 +65,9 @@ animation:fadeBanner 20s ease forwards, glowTramonto 3s infinite alternate;}
   to{opacity:1;transform:scale(1.05);}
 }
 
+#sunMoonTimes{font-size:1em;color:#000;background:rgba(255,255,255,0.6);display:inline-block;
+padding:4px 10px;border-radius:12px;margin:8px auto;box-shadow:0 0 6px rgba(0,0,0,0.25);
+font-weight:600;transition:all 1s ease;}
 #gauges{display:flex;flex-wrap:wrap;justify-content:center;gap:26px;
 padding:30px 0 40px;background:linear-gradient(to bottom,#002850,#00142c);border-top:3px solid #004b8d;}
 .gaugeBox{background:linear-gradient(to bottom,#f8fbff,#e6edf5);border-radius:18px;width:260px;height:270px;
@@ -78,13 +81,17 @@ footer{font-size:0.93em;color:#a9c9ff;background:#001b3a;padding:10px;}
 </head>
 
 <body>
-<header>🌤️ Langini Meteo – Dashboard V5.4<br><div id="logo">by Langini D.</div></header>
+<header>🌤️ Langini Meteo – Dashboard V5.4.1<br><div id="logo">by Langini D.</div></header>
 <div id="statusBar">Caricamento dati...</div>
 
-<div id="sky"><div id="stars"></div><div id="sun"></div><div id="moon"></div></div>
+<div id="sky">
+  <div id="stars"></div>
+  <div id="sun"></div>
+  <div id="moon"></div>
+</div>
 <div id="phaseMsg"></div>
 
-<!-- 🔶 Avviso qualità aria sopra la linea blu -->
+<!-- ⚠️ Avviso qualità aria sopra la linea blu -->
 <div id="ariaAlert">⚠️ Qualità Aria Moderata</div>
 
 <div id="sunMoonTimes">☀️ Alba: --:-- • 🌇 Tramonto: --:--</div>
@@ -99,23 +106,48 @@ footer{font-size:0.93em;color:#a9c9ff;background:#001b3a;padding:10px;}
 <footer>© 2025 Langini Meteo • Aggiornamento ogni 30 s</footer>
 
 <script>
-const CHANNEL_ID=3149218;
+const LAT=45.77,LON=8.88,CHANNEL_ID=3149218;
 const g1=new JustGage({id:"g1",value:0,min:950,max:1050,pointer:true});
 const g2=new JustGage({id:"g2",value:0,min:-10,max:50,pointer:true});
 const g3=new JustGage({id:"g3",value:0,min:0,max:100,pointer:true});
 const g4=new JustGage({id:"g4",value:0,min:0,max:500,pointer:true});
 
+(()=>{const s=document.getElementById('stars');
+for(let i=0;i<40;i++){let e=document.createElement('div');e.className='star';
+e.style.left=Math.random()*100+'%';e.style.top=Math.random()*100+'%';
+e.style.animationDelay=Math.random()*3+'s';s.appendChild(e);}})();
+
+function minutiToOra(m){const h=Math.floor(m/60),min=Math.floor(m%60);return`${String(h).padStart(2,"0")}:${String(min).padStart(2,"0")}`;}
+function aggiornaCielo(){const now=new Date(),t=SunCalc.getTimes(now,LAT,LON);
+const alba=t.sunrise.getHours()*60+t.sunrise.getMinutes();
+const tram=t.sunset.getHours()*60+t.sunset.getMinutes();
+const curr=now.getHours()*60+now.getMinutes();
+const sun=document.getElementById("sun"),moon=document.getElementById("moon"),stars=document.getElementById("stars");
+document.getElementById("sunMoonTimes").innerHTML=`☀️ Alba: ${minutiToOra(alba)} • 🌇 Tramonto: ${minutiToOra(tram)}`;
+if(curr>=alba&&curr<tram){stars.style.opacity=0;sun.style.opacity=1;moon.style.opacity=0;
+const p=(curr-alba)/(tram-alba);sun.style.left=5+p*90+"%";sun.style.top=53-17*Math.sin(p*Math.PI)+"%";}
+else{stars.style.opacity=0.9;moon.style.opacity=1;sun.style.opacity=0;
+const tot=(24*60-tram)+alba;const pass=curr>=tram?(curr-tram):(curr+24*60-tram);
+const p=pass/tot;moon.style.left=95-p*90+"%";moon.style.top=53-12*Math.sin(p*Math.PI)+"%";}}
+setInterval(aggiornaCielo,60000);window.onload=aggiornaCielo;
+
+// --- aggiorna dati ---
 async function aggiorna(){
  try{
   const r=await fetch(`https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?results=60`);
   const d=await r.json();if(!d.feeds||!d.feeds.length)return;
   const f=d.feeds.map(e=>({f1:+e.field1,f2:+e.field2,f3:+e.field3,f4:+e.field4})),u=f.at(-1);
   g1.refresh(u.f1);g2.refresh(u.f2);g3.refresh(u.f3);g4.refresh(u.f4);
+  ["v1","v2","v3","v4"].forEach((id,i)=>document.getElementById(id).textContent=isNaN(u[`f${i+1}`])?"--":u[`f${i+1}`].toFixed(1));
+  ["m1","m2","m3","m4"].forEach((id,i)=>{const arr=f.map(x=>x[`f${i+1}`]);const v=arr.filter(x=>!isNaN(x));const avg=v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):"--";document.getElementById(id).textContent=avg;});
 
-  const aqi=u.f4;const alert=document.getElementById("ariaAlert");
+  // --- Avviso qualità aria ---
+  const aqi=u.f4,alert=document.getElementById("ariaAlert");
   if(aqi<=150){alert.style.display="block";}
   else{alert.style.display="none";}
- }catch(e){console.error(e);}
+
+  document.getElementById("statusBar").textContent=`✅ Aggiornato alle ${new Date().toLocaleTimeString("it-IT")}`;
+ }catch(e){document.getElementById("statusBar").textContent="⚠️ Errore connessione";console.error(e);}
 }
 aggiorna();setInterval(aggiorna,30000);
 </script>
