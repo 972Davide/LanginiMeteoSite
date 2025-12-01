@@ -2,1052 +2,559 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Langini Meteo – Dashboard V8.2</title>
+  <title>Langini Meteo – Dashboard V8.2 CLEAN</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- SunCalc per alba/tramonto + fasi lunari + posizione Sole -->
   <script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
 
   <style>
     :root {
-      --bg-top: #021b3c;
-      --bg-bottom: #034f9a;
       --card-bg: #f8fbff;
       --card-border: #d0e0ff;
       --text-main: #0b1b3a;
       --text-muted: #6b7a99;
       --accent: #ffc107;
-      --good: #00c853;
-      --moderate: #ffca28;
-      --bad: #ff7043;
-      --danger: #d50000;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { margin:0; padding:0; box-sizing:border-box; }
 
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        Roboto, sans-serif;
-      background: #000814;
-      color: #fff;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+      background:#000814;
+      color:#fff;
+      height:100vh;
+      display:flex;
+      flex-direction:column;
     }
 
+    /* CIELO COMPLETAMENTE LISCIO (NO PUNTINI, NO STRATI) */
     .sky {
-      position: relative;
-      flex: 1;
-      background: #1f2b3a;   /* colore giorno base, poi JS lo interpola */
+      position:relative;
+      flex:1;
+      background:#1f2b3a; /* Giorno */
       transition: background 1.5s linear;
-      overflow: hidden;
+      overflow:hidden;
     }
-
     .sky.night {
-      background: #000814;   /* colore notte base */
+      background:#000814; /* Notte */
     }
-
-
 
     /* NUVOLE */
     .cloud-layer {
-      position: absolute;
-      top: 10%;
-      left: -50%;
-      width: 200%;
-      height: 40%;
-      background-repeat: repeat-x;
-      background-position: 0 0;
-      opacity: 0.25;
-      z-index: 1;
-      pointer-events: none;
-      transition: opacity 0.8s ease;
+      position:absolute;
+      top:10%;
+      left:-50%;
+      width:200%;
+      height:40%;
+      background-repeat:repeat-x;
+      opacity:0.25;
+      z-index:1;
+      pointer-events:none;
     }
-
     .cloud-layer.front {
-      top: 15%;
-      height: 35%;
-      opacity: 0.35;
+      top:15%;
+      height:35%;
+      opacity:0.35;
       animation: cloudsFront 60s linear infinite;
       background-image:
-        radial-gradient(circle at 10% 20%, rgba(255,255,255,0.9) 0, transparent 40%),
-        radial-gradient(circle at 35% 40%, rgba(255,255,255,0.8) 0, transparent 40%),
-        radial-gradient(circle at 70% 30%, rgba(255,255,255,0.85) 0, transparent 40%);
+        radial-gradient(circle at 10% 20%, rgba(255,255,255,0.35) 0, transparent 40%),
+        radial-gradient(circle at 35% 40%, rgba(255,255,255,0.30) 0, transparent 40%),
+        radial-gradient(circle at 70% 30%, rgba(255,255,255,0.28) 0, transparent 40%);
     }
 
     .cloud-layer.back {
-      top: 5%;
-      height: 30%;
-      opacity: 0.18;
+      top:5%;
+      height:30%;
+      opacity:0.18;
       animation: cloudsBack 120s linear infinite;
       background-image:
-        radial-gradient(circle at 20% 30%, rgba(255,255,255,0.6) 0, transparent 45%),
-        radial-gradient(circle at 60% 20%, rgba(255,255,255,0.5) 0, transparent 45%);
-    }
-
-    .sky.night .cloud-layer {
-      opacity: 0.12;
+        radial-gradient(circle at 20% 30%, rgba(255,255,255,0.18) 0, transparent 45%),
+        radial-gradient(circle at 60% 20%, rgba(255,255,255,0.14) 0, transparent 45%);
     }
 
     @keyframes cloudsFront {
-      from { transform: translateX(0); }
-      to { transform: translateX(-25%); }
+      from { transform:translateX(0); }
+      to { transform:translateX(-25%); }
     }
-
     @keyframes cloudsBack {
-      from { transform: translateX(0); }
-      to { transform: translateX(-15%); }
+      from { transform:translateX(0); }
+      to { transform:translateX(-15%); }
     }
 
     /* AURORA */
     .aurora {
-      position: absolute;
-      top: 5%;
-      left: 0;
-      width: 100%;
-      height: 40%;
-      background: linear-gradient(180deg,
-        rgba(120,255,200,0.4),
-        rgba(80,120,255,0.0)
-      );
-      opacity: 0;
-      pointer-events: none;
-      z-index: 1;
-      mix-blend-mode: screen;
-      filter: blur(6px);
-      transition: opacity 1.2s ease;
+      position:absolute;
+      top:5%;
+      left:0;
+      width:100%;
+      height:40%;
+      background:linear-gradient(180deg, rgba(120,255,200,0.4), rgba(80,120,255,0.0));
+      opacity:0;
+      z-index:1;
+      filter:blur(6px);
       animation: auroraWave 12s ease-in-out infinite alternate;
+      pointer-events:none;
+      transition:opacity 1s ease;
     }
-
     @keyframes auroraWave {
-      0% { transform: translateX(-5%) translateY(0); }
-      50% { transform: translateX(5%) translateY(5px); }
-      100% { transform: translateX(0%) translateY(-5px); }
+      0% { transform:translateX(-3%); }
+      50% { transform:translateX(4%); }
+      100% { transform:translateX(0%); }
     }
 
     /* NEBBIA */
     .fog {
-      position: absolute;
-      bottom: 0;
-      left: -20%;
-      width: 140%;
-      height: 30%;
-      background: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.18), transparent 60%),
-                  radial-gradient(circle at 60% 90%, rgba(255,255,255,0.2), transparent 60%);
-      opacity: 0;
-      pointer-events: none;
-      z-index: 2;
-      filter: blur(4px);
-      transition: opacity 1s ease;
-      animation: fogDrift 40s linear infinite;
+      position:absolute;
+      bottom:0;
+      left:-20%;
+      width:140%;
+      height:30%;
+      background:radial-gradient(circle at 20% 80%, rgba(255,255,255,0.18), transparent 60%),
+                 radial-gradient(circle at 60% 90%, rgba(255,255,255,0.2), transparent 60%);
+      opacity:0;
+      pointer-events:none;
+      z-index:2;
+      filter:blur(4px);
+      transition:opacity 1s ease;
+      animation:fogDrift 40s linear infinite;
     }
-
     @keyframes fogDrift {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(10%); }
+      0% { transform:translateX(0); }
+      100% { transform:translateX(6%); }
     }
 
     /* FULMINE */
     .lightning {
-      position: absolute;
-      inset: 0;
+      position:absolute;
+      inset:0;
       background: radial-gradient(circle at 30% 0%, rgba(255,255,255,0.85), transparent 45%);
-      opacity: 0;
-      pointer-events: none;
-      z-index: 4;
-      mix-blend-mode: screen;
-      transition: opacity 0.15s ease;
+      opacity:0;
+      z-index:4;
+      pointer-events:none;
+      transition:opacity 0.15s ease;
     }
-
-    .lightning.flash {
-      opacity: 0.8;
-    }
+    .lightning.flash { opacity:0.8; }
 
     /* STELLA CADENTE */
     .shooting-star {
-      position: absolute;
-      top: -10%;
-      left: -10%;
-      width: 120px;
-      height: 2px;
-      background: linear-gradient(90deg, rgba(255,255,255,0.9), transparent);
-      opacity: 0;
-      transform: rotate(25deg);
-      pointer-events: none;
-      z-index: 3;
+      position:absolute;
+      top:-5%;
+      left:-5%;
+      width:120px;
+      height:2px;
+      background:linear-gradient(90deg, rgba(255,255,255,0.9), transparent);
+      opacity:0;
+      transform:rotate(25deg);
+      pointer-events:none;
+      z-index:3;
     }
-
     .shooting-star.active {
       animation: shooting 1.2s ease-out forwards;
     }
-
     @keyframes shooting {
-      0% {
-        opacity: 0;
-        transform: translate(-10vw, -10vh) rotate(25deg);
-      }
-      20% {
-        opacity: 1;
-      }
-      100% {
-        opacity: 0;
-        transform: translate(40vw, 40vh) rotate(25deg);
-      }
+      0% { opacity:0; transform:translate(-10vw,-10vh) rotate(25deg); }
+      20% { opacity:1; }
+      100% { opacity:0; transform:translate(40vw,40vh) rotate(25deg); }
     }
 
-    /* SOLE / LUNA ANIMATI */
+    /* SOLE/LUNA */
     .sunmoon {
-      position: absolute;
-      top: 20%;
-      left: -80px;
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      z-index: 3;
-      transition: left 1.5s linear, top 1.5s linear, box-shadow 1s ease;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      overflow:hidden;
+      position:absolute;
+      top:20%;
+      left:-80px;
+      width:70px;
+      height:70px;
+      border-radius:50%;
+      z-index:3;
+      transition:left 1.5s linear, top 1.5s linear;
+      display:flex; align-items:center; justify-content:center;
     }
-
     .sun {
-      background: radial-gradient(circle at 35% 35%, #fff8b0, #ffcc00, #ff9800);
-      box-shadow: 0 0 25px 12px rgba(255,180,0,0.8);
-      animation: sunPulse 5s ease-in-out infinite;
+      background:radial-gradient(circle at 35% 35%, #fff8b0, #ffcc00, #ff9800);
+      box-shadow:0 0 25px 12px rgba(255,180,0,0.8);
+      animation:sunPulse 5s ease-in-out infinite;
     }
-
     @keyframes sunPulse {
-      0% { box-shadow: 0 0 20px 8px rgba(255,180,0,0.6); }
-      50% { box-shadow: 0 0 32px 14px rgba(255,204,0,0.9); }
-      100% { box-shadow: 0 0 20px 8px rgba(255,180,0,0.6); }
+      0% { box-shadow:0 0 20px 8px rgba(255,180,0,0.6); }
+      50% { box-shadow:0 0 32px 14px rgba(255,204,0,1); }
+      100% { box-shadow:0 0 20px 8px rgba(255,180,0,0.6); }
     }
 
     .moon {
-      background: radial-gradient(circle at 40% 40%, #ffffff, #cfd8dc);
-      box-shadow: 0 0 18px 8px rgba(200,200,255,0.5);
-      animation: moonGlow 6s ease-in-out infinite;
-      position: relative;
+      background:radial-gradient(circle at 40% 40%, #ffffff, #cfd8dc);
+      box-shadow:0 0 18px 8px rgba(200,200,255,0.5);
+      animation:moonGlow 6s ease-in-out infinite;
+      position:relative;
+      overflow:hidden;
     }
-
     @keyframes moonGlow {
-      0% { box-shadow: 0 0 14px 6px rgba(200,200,255,0.4); }
-      50% { box-shadow: 0 0 22px 10px rgba(220,220,255,0.7); }
-      100% { box-shadow: 0 0 14px 6px rgba(200,200,255,0.4); }
+      0% { box-shadow:0 0 14px 6px rgba(200,200,255,0.4); }
+      50% { box-shadow:0 0 22px 10px rgba(220,220,255,0.7); }
+      100% { box-shadow:0 0 14px 6px rgba(200,200,255,0.4); }
     }
 
-    /* FASE LUNARE: overlay scuro che cambia forma */
+    /* Maschera fase lunare */
     .moon-phase-mask {
       position:absolute;
       inset:0;
       border-radius:50%;
-      background:#020520;
-      box-shadow: inset 0 0 8px rgba(0,0,0,0.7);
+      background:#000814;
+      box-shadow:inset 0 0 8px rgba(0,0,0,0.5);
       transform-origin:center center;
     }
 
-    .moon.phase-0 .moon-phase-mask { /* nuova */
-      transform: scaleX(1);
-    }
-    .moon.phase-1 .moon-phase-mask { /* crescente sottile */
-      transform: translateX(-35%) scaleX(0.2);
-    }
-    .moon.phase-2 .moon-phase-mask { /* primo quarto */
-      transform: translateX(-15%) scaleX(0.5);
-    }
-    .moon.phase-3 .moon-phase-mask { /* gibbosa crescente */
-      transform: translateX(-8%) scaleX(0.8);
-    }
-    .moon.phase-4 .moon-phase-mask { /* piena */
-      transform: scaleX(0.02);
-    }
-    .moon.phase-5 .moon-phase-mask { /* gibbosa calante */
-      transform: translateX(8%) scaleX(0.8);
-    }
-    .moon.phase-6 .moon-phase-mask { /* ultimo quarto */
-      transform: translateX(15%) scaleX(0.5);
-    }
-    .moon.phase-7 .moon-phase-mask { /* calante sottile */
-      transform: translateX(35%) scaleX(0.2);
-    }
+    /* Fasi lunari 0..7 */
+    .moon.phase-0 .moon-phase-mask { transform:scaleX(1); }
+    .moon.phase-1 .moon-phase-mask { transform:translateX(-35%) scaleX(0.2); }
+    .moon.phase-2 .moon-phase-mask { transform:translateX(-15%) scaleX(0.5); }
+    .moon.phase-3 .moon-phase-mask { transform:translateX(-8%) scaleX(0.8); }
+    .moon.phase-4 .moon-phase-mask { transform:scaleX(0.02); }
+    .moon.phase-5 .moon-phase-mask { transform:translateX(8%) scaleX(0.8); }
+    .moon.phase-6 .moon-phase-mask { transform:translateX(15%) scaleX(0.5); }
+    .moon.phase-7 .moon-phase-mask { transform:translateX(35%) scaleX(0.2); }
 
-    .content {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 16px;
-      position: relative;
-      z-index: 5;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+    /* CONTENUTO */
+    .content { max-width:1200px; margin:0 auto; padding:16px; z-index:5; }
 
-    header {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      align-items: center;
-      text-align: center;
-    }
+    h1 { text-align:center; font-size:1.4rem; font-weight:700; margin-bottom:6px; }
 
-    header h1 {
-      font-size: 1.5rem;
-      font-weight: 700;
-    }
-
-    header h1 span.version {
-      font-size: 0.95rem;
-      opacity: 0.7;
-      margin-left: 4px;
-    }
-
-    header .subtitle {
-      font-size: 0.85rem;
-      opacity: 0.9;
-    }
+    .subtitle { text-align:center; font-size:0.9rem; margin-bottom:10px; }
 
     .btn-realtime {
-      display: inline-block;
-      padding: 10px 24px;
-      margin-top: 10px;
+      display:inline-block;
+      margin:0 auto 10px;
+      padding:10px 20px;
       background:#ff9500;
       color:#fff;
-      font-weight:700;
-      border-radius:14px;
+      border-radius:12px;
       text-decoration:none;
+      font-weight:700;
       box-shadow:0 0 12px rgba(255,149,0,0.7);
-      transition:0.2s;
-      font-size:0.9rem;
-    }
-    .btn-realtime:hover {
-      background:#ffb13c;
-      box-shadow:0 0 18px rgba(255,149,0,1);
     }
 
     .status-bar {
-      margin-top: 8px;
-      font-size: 0.85rem;
-      background: rgba(0, 0, 0, 0.25);
-      padding: 6px 12px;
-      border-radius: 999px;
-      display: inline-flex;
-      gap: 10px;
-      align-items: center;
+      text-align:center;
+      font-size:0.85rem;
+      margin-bottom:10px;
     }
 
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #0f0;
-      box-shadow: 0 0 8px rgba(0, 255, 0, 0.8);
-    }
+    /* CARDS */
+    .cards { display:grid; gap:14px; margin-top:16px; }
+    .cards-top { grid-template-columns:1fr 1fr; }
+    .cards-bottom { grid-template-columns:repeat(4,1fr); }
 
-    .quality-banner {
-      margin: 6px auto 0;
-      padding: 10px 24px;
-      border-radius: 999px;
-      background: #ffc400;
-      color: #202020;
-      font-weight: 600;
-      font-size: 0.95rem;
-      box-shadow: 0 0 20px rgba(255, 196, 0, 0.6);
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
+    @media(max-width:900px) {
+      .cards-bottom { grid-template-columns:1fr 1fr; }
     }
-
-    .quality-banner.good {
-      background: #00e676;
-      box-shadow: 0 0 20px rgba(0, 230, 118, 0.6);
-    }
-
-    .quality-banner.moderate {
-      background: #ffeb3b;
-      box-shadow: 0 0 20px rgba(255, 235, 59, 0.6);
-    }
-
-    .quality-banner.bad {
-      background: #ff9100;
-      box-shadow: 0 0 20px rgba(255, 145, 0, 0.6);
-    }
-
-    .quality-banner.very-bad {
-      background: #ff1744;
-      box-shadow: 0 0 20px rgba(255, 23, 68, 0.7);
-      color: #fff;
-    }
-
-    .quality-banner span.icon {
-      font-size: 1.1rem;
-    }
-
-    .sun-times {
-      margin: 6px auto 0;
-      padding: 6px 14px;
-      border-radius: 12px;
-      background: rgba(0, 0, 0, 0.25);
-      font-size: 0.85rem;
-      display: inline-flex;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .sun-times span {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .cards {
-      margin-top: 20px;
-      display: grid;
-      gap: 14px;
-    }
-
-    .cards-top {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .cards-bottom {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-
-    @media (max-width: 1100px) {
-      .cards-bottom {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 720px) {
-      .cards-top {
-        grid-template-columns: 1fr;
-      }
-      .cards-bottom {
-        grid-template-columns: 1fr;
-      }
+    @media(max-width:600px) {
+      .cards-top, .cards-bottom { grid-template-columns:1fr; }
     }
 
     .card {
-      background: var(--card-bg);
-      color: var(--text-main);
-      border-radius: 16px;
-      padding: 14px 14px 12px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-      border: 1px solid var(--card-border);
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      min-height: 140px;
+      background:#fff;
+      color:#000;
+      border-radius:16px;
+      padding:14px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.25);
     }
 
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
+    .card-header { font-weight:600; margin-bottom:4px; }
 
-    .card-header span.icon {
-      font-size: 1.1rem;
-    }
+    .value { font-size:1.8rem; font-weight:700; margin-top:6px; }
+    .value-unit { font-size:0.8rem; color:#666; }
 
-    .gauge {
-      position: relative;
-      height: 80px;
-      margin-top: 4px;
-    }
-
-    .gauge-track {
-      position: absolute;
-      inset: auto 0 0;
-      height: 16px;
-      border-radius: 999px;
-      background: #eceff4;
-      overflow: hidden;
-    }
-
+    .gauge { margin-top:10px; height:16px; background:#e0e0e0; border-radius:12px; }
     .gauge-fill {
-      height: 100%;
-      width: 0%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, #ffb300, #ff6d00);
-      transition: width 0.4s ease-out;
+      height:100%; background:linear-gradient(90deg,#ffb300,#ff6d00);
+      width:0%; border-radius:inherit; transition:width 0.3s ease;
     }
 
-    .value {
-      font-size: 1.4rem;
-      font-weight: 700;
-      margin-top: 8px;
-    }
+    .rainstate-value { font-size:1.8rem; font-weight:700; text-align:center; }
+    .rainstate-value.asciutto { color:#f57c00; }
+    .rainstate-value.bagnato { color:#1e88e5; }
 
-    .value-unit {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-    }
-
-    .card-footer {
-      margin-top: auto;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-    }
-
-    .windmax-title {
-      font-size: 0.95rem;
-      font-weight: 600;
-      display:flex;
-      align-items:center;
-      gap:6px;
-    }
-
-    .windmax-value {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-top: 10px;
-    }
-
-    .windmax-time {
-      margin-top: 4px;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    .rainstate-value {
-      font-size: 1.6rem;
-      font-weight: 600;
-      margin-top: 14px;
-    }
-
-    .rainstate-value.asciutto {
-      color: #f57c00;
-    }
-
-    .rainstate-value.bagnato {
-      color: #1565c0;
-    }
+    .windmax-value { font-size:2rem; font-weight:700; text-align:center; }
   </style>
 </head>
+
 <body>
   <div class="sky" id="sky">
-    <!-- Layer animazioni cielo -->
-    <div class="cloud-layer back" id="cloudBack"></div>
-    <div class="cloud-layer front" id="cloudFront"></div>
+    <div class="cloud-layer back"></div>
+    <div class="cloud-layer front"></div>
     <div class="aurora" id="aurora"></div>
     <div class="fog" id="fog"></div>
     <div class="lightning" id="lightning"></div>
     <div class="shooting-star" id="shootingStar"></div>
 
-    <!-- Sole/Luna animati -->
     <div class="sunmoon" id="sunMoon">
       <div class="moon-phase-mask" id="moonMask"></div>
     </div>
 
     <div class="content">
-      <header>
-        <h1>🌟 Langini Meteo – Dashboard <span class="version">V8.2</span></h1>
-        <div class="subtitle">
-          Meteo + Vento + Pioggia (storico) + Dati immediati + Sky PRO + fasi lunari
+      <h1>🌟 Langini Meteo – Dashboard V8.2 CLEAN</h1>
+      <div class="subtitle">Sky Premium, Fasi Lunari, Transizione Realistica, Dati Meteo Completi</div>
+
+      <a href="http://192.168.1.20" class="btn-realtime">⚡ Dati immediati</a>
+
+      <div class="status-bar" id="statusText">Caricamento dati…</div>
+
+      <div class="cards cards-top">
+        <div class="card">
+          <div class="card-header">🌀 Velocità Max</div>
+          <div class="windmax-value" id="windMaxValue">--</div>
+          <div id="windMaxTime" style="font-size:0.8rem;color:#666;"></div>
         </div>
 
-        <!-- Pulsante dati in tempo reale -->
-        <a href="http://192.168.1.20" class="btn-realtime">
-          ⚡ Dati immediati (vento + pioggia)
-        </a>
-
-        <div class="status-bar" id="statusBar">
-          <span class="status-dot"></span>
-          <span id="statusText">Aggiornamento in corso…</span>
-        </div>
-
-        <div class="quality-banner moderate" id="qualityBanner">
-          <span class="icon">⚠️</span>
-          <span id="qualityLabel">Qualità aria: --</span>
-        </div>
-
-        <div class="sun-times" id="sunTimes">
-          <span>🌅 <strong>Alba:</strong> --:--</span>
-          <span>🌇 <strong>Tramonto:</strong> --:--</span>
-        </div>
-      </header>
-
-      <!-- RIGA SUPERIORE: VENTO MAX + PIOGGIA -->
-      <section class="cards cards-top">
-        <!-- Velocità Max -->
-        <article class="card">
-          <div class="windmax-title">
-            <span>🌀 Velocità Max Raggiunta</span>
-          </div>
-          <div class="windmax-value" id="windMaxValue">-- km/h</div>
-          <div class="windmax-time" id="windMaxTime">--</div>
-        </article>
-
-        <!-- Stato Pioggia -->
-        <article class="card">
-          <div class="card-header">
-            <span>🌧️ Pioggia</span>
-          </div>
+        <div class="card">
+          <div class="card-header">🌧️ Pioggia</div>
           <div class="rainstate-value" id="rainState">--</div>
-        </article>
-      </section>
+        </div>
+      </div>
 
-      <!-- RIGA METEO: 4 CARD PRINCIPALI -->
-      <section class="cards cards-bottom">
-        <!-- Pressione -->
-        <article class="card">
-          <div class="card-header">
-            <span>Pressione (hPa)</span>
-            <span class="icon">📈</span>
-          </div>
-          <div class="gauge">
-            <div class="gauge-track">
-              <div class="gauge-fill" id="gaugePressure"></div>
-            </div>
-          </div>
-          <div class="value">
-            <span id="pressureValue">0</span>
-          </div>
+      <div class="cards cards-bottom">
+        <div class="card">
+          <div class="card-header">Pressione</div>
+          <div class="value" id="pressureValue">--</div>
           <div class="value-unit">hPa</div>
-          <div class="card-footer">Media oraria: <span id="pressureAvg">0.0</span></div>
-        </article>
+          <div class="gauge"><div class="gauge-fill" id="gaugePressure"></div></div>
+        </div>
 
-        <!-- Temperatura -->
-        <article class="card">
-          <div class="card-header">
-            <span>Temperatura (°C)</span>
-            <span class="icon">🌡️</span>
-          </div>
-          <div class="gauge">
-            <div class="gauge-track">
-              <div class="gauge-fill" id="gaugeTemp"></div>
-            </div>
-          </div>
-          <div class="value">
-            <span id="tempValue">0</span>
-          </div>
+        <div class="card">
+          <div class="card-header">Temperatura</div>
+          <div class="value" id="tempValue">--</div>
           <div class="value-unit">°C</div>
-          <div class="card-footer">Media oraria: <span id="tempAvg">0.0</span></div>
-        </article>
+          <div class="gauge"><div class="gauge-fill" id="gaugeTemp"></div></div>
+        </div>
 
-        <!-- Umidità -->
-        <article class="card">
-          <div class="card-header">
-            <span>Umidità (%)</span>
-            <span class="icon">💧</span>
-          </div>
-          <div class="gauge">
-            <div class="gauge-track">
-              <div class="gauge-fill" id="gaugeHum"></div>
-            </div>
-          </div>
-          <div class="value">
-            <span id="humValue">0</span>
-          </div>
-          <div class="value-unit">% UR</div>
-          <div class="card-footer">Media oraria: <span id="humAvg">0.0</span></div>
-        </article>
+        <div class="card">
+          <div class="card-header">Umidità</div>
+          <div class="value" id="humValue">--</div>
+          <div class="value-unit">%</div>
+          <div class="gauge"><div class="gauge-fill" id="gaugeHum"></div></div>
+        </div>
 
-        <!-- Qualità Aria -->
-        <article class="card">
-          <div class="card-header">
-            <span>Qualità Aria (MQ135)</span>
-            <span class="icon">🌱</span>
-          </div>
-          <div class="gauge">
-            <div class="gauge-track">
-              <div class="gauge-fill" id="gaugeAQ"></div>
-            </div>
-          </div>
-          <div class="value">
-            <span id="aqValue">0</span>
-          </div>
+        <div class="card">
+          <div class="card-header">Qualità Aria</div>
+          <div class="value" id="aqValue">--</div>
           <div class="value-unit">AQI</div>
-          <div class="card-footer">Media oraria: <span id="aqAvg">0.0</span></div>
-        </article>
-      </section>
+          <div class="gauge"><div class="gauge-fill" id="gaugeAQ"></div></div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <script>
-    // ================================
-    //  CONFIG
-    // ================================
-    const METEO_CHANNEL = 3149218;   // pressione, temp, umidità, MQ135
-    const WIND_CHANNEL  = 2956240;   // vento, pioggia
+<script>
+/* CONFIG */
+const METEO_CHANNEL = 3149218;
+const WIND_CHANNEL  = 2956240;
 
-    const LAT = 45.7525;
-    const LON = 8.8975;
+const LAT = 45.7525;
+const LON = 8.8975;
 
-    // ================================
-    //  UTIL
-    // ================================
-    function toNumber(v, fallback = 0) {
-      const n = parseFloat(v);
-      return isNaN(n) ? fallback : n;
+/* COLORI */
+function interpolateColor(c1, c2, f) {
+  const p1 = parseInt(c1.slice(1), 16);
+  const p2 = parseInt(c2.slice(1), 16);
+
+  const r1 = (p1>>16)&255, g1=(p1>>8)&255, b1=p1&255;
+  const r2 = (p2>>16)&255, g2=(p2>>8)&255, b2=p2&255;
+
+  const r = Math.round(r1 + (r2-r1)*f);
+  const g = Math.round(g1 + (g2-g1)*f);
+  const b = Math.round(b1 + (b2-b1)*f);
+
+  return `rgb(${r},${g},${b})`;
+}
+
+/* FASE LUNARE */
+function getMoonPhaseIndex(date){
+  const lp = 2551443;
+  const new_moon = Date.UTC(1970,0,7,20,35,0);
+  const now = date.getTime();
+  const phase = ((now - new_moon)/1000) % lp;
+  return Math.floor((phase/lp) * 8 + 0.5) & 7;
+}
+
+/* TOOLS */
+function toNumber(x){ const n=parseFloat(x); return isNaN(n)?0:n; }
+function clamp(v,a,b){ return Math.min(b,Math.max(a,v)); }
+
+async function fetchJson(u){ const r=await fetch(u); return r.json(); }
+
+/* SOLE/LUNA + COLORE CIELO */
+function updateSky() {
+  const now = new Date();
+  const times = SunCalc.getTimes(now, LAT, LON);
+  const pos = SunCalc.getPosition(now, LAT, LON);
+
+  const altDeg = pos.altitude * 180/Math.PI;
+
+  const SUN = document.getElementById("sunMoon");
+  const MASK = document.getElementById("moonMask");
+  const SKY  = document.getElementById("sky");
+
+  const isDay = now>=times.sunrise && now<=times.sunset;
+
+  /* Sole/Luna */
+  if(isDay){
+    SUN.classList.add("sun");
+    SUN.classList.remove("moon");
+    MASK.style.display="none";
+  } else {
+    SUN.classList.remove("sun");
+    SUN.classList.add("moon");
+    MASK.style.display="block";
+
+    const idx = getMoonPhaseIndex(now);
+    for(let i=0;i<8;i++) SUN.classList.remove("phase-"+i);
+    SUN.classList.add("phase-"+idx);
+  }
+
+  /* Traiettoria */
+  let start = isDay ? times.sunrise : times.sunset;
+  let end   = isDay ? times.sunset : new Date(times.sunrise.getTime()+86400000);
+
+  let pct = (now-start)/(end-start); pct=clamp(pct,0,1);
+
+  const W = window.innerWidth;
+  const x = pct*(W+160)-80;
+  const maxH = window.innerHeight*0.35;
+  const y = maxH - Math.sin(pct*Math.PI)*maxH;
+
+  SUN.style.left = `${x}px`;
+  SUN.style.top  = `${y}px`;
+
+  /* Colore realistico */
+  const DAY  = "#1f2b3a";
+  const NIGHT= "#000814";
+
+  let blend;
+  const ALT_NIGHT=-12, ALT_DAY=45;
+
+  if(altDeg<=ALT_NIGHT) blend=0;
+  else if(altDeg>=ALT_DAY) blend=1;
+  else blend = (altDeg-ALT_NIGHT)/(ALT_DAY-ALT_NIGHT);
+
+  blend = clamp(blend,0,1);
+
+  SKY.style.background = interpolateColor(NIGHT, DAY, blend);
+
+  if(altDeg<=0) SKY.classList.add("night");
+  else SKY.classList.remove("night");
+}
+
+/* STELLA CADENTE */
+function maybeShootStar(){
+  const now=new Date();
+  const t=SunCalc.getTimes(now,LAT,LON);
+  const night = now<t.sunrise || now>t.sunset;
+  if(!night) return;
+
+  if(Math.random()<0.3){
+    const s=document.getElementById("shootingStar");
+    s.classList.add("active");
+    setTimeout(()=>s.classList.remove("active"),1300);}
+}
+
+/* DASHBOARD DATI */
+let windMax=parseFloat(localStorage.getItem("windMax")||"0");
+let windMaxDate=localStorage.getItem("windMaxDate")||"--";
+
+function updateWindMaxDisplay(){
+  document.getElementById("windMaxValue").textContent=
+    windMax>0?windMax.toFixed(1)+" km/h":"--";
+  document.getElementById("windMaxTime").textContent=windMaxDate;
+}
+
+updateWindMaxDisplay();
+
+async function updateDashboard(){
+  try{
+    const [meteo,wind]=await Promise.all([
+      fetchJson(`https://api.thingspeak.com/channels/${METEO_CHANNEL}/feeds.json?results=60`),
+      fetchJson(`https://api.thingspeak.com/channels/${WIND_CHANNEL}/feeds.json?results=60`)
+    ]);
+
+    const m=meteo.feeds?.at(-1)||{};
+    const w=wind.feeds?.at(-1)||{};
+
+    const pressure=toNumber(m.field1);
+    const temp=toNumber(m.field2);
+    const hum=toNumber(m.field3);
+    const aqi=toNumber(m.field4);
+
+    document.getElementById("pressureValue").textContent=pressure.toFixed(0);
+    document.getElementById("tempValue").textContent=temp.toFixed(0);
+    document.getElementById("humValue").textContent=hum.toFixed(0);
+    document.getElementById("aqValue").textContent=aqi.toFixed(0);
+
+    document.getElementById("gaugePressure").style.width=
+      clamp((pressure-950)/100*100,0,100)+"%";
+    document.getElementById("gaugeTemp").style.width=
+      clamp((temp+10)/60*100,0,100)+"%";
+    document.getElementById("gaugeHum").style.width=hum+"%";
+    document.getElementById("gaugeAQ").style.width=
+      clamp(aqi/500*100,0,100)+"%";
+
+    /* Pioggia */
+    const rain=toNumber(w.field2);
+    const rEl=document.getElementById("rainState");
+    if(rain>=1){
+      rEl.textContent="Bagnato";
+      rEl.classList.remove("asciutto");
+      rEl.classList.add("bagnato");
+    } else {
+      rEl.textContent="Asciutto";
+      rEl.classList.remove("bagnato");
+      rEl.classList.add("asciutto");
     }
 
-    function averageField(feeds, fieldName) {
-      if (!feeds || !feeds.length) return 0;
-      let sum = 0;
-      let count = 0;
-      for (const f of feeds) {
-        const v = toNumber(f[fieldName], NaN);
-        if (!isNaN(v)) {
-          sum += v;
-          count++;
-        }
-      }
-      return count ? sum / count : 0;
+    /* Vento max */
+    const windVal=toNumber(w.field1);
+    if(windVal>windMax){
+      windMax=windVal;
+      const now=new Date();
+      windMaxDate=
+        now.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"})+
+        " - "+now.toLocaleDateString("it-IT");
+      localStorage.setItem("windMax",windMax.toFixed(1));
+      localStorage.setItem("windMaxDate",windMaxDate);
     }
-
-    function formatTime(dateStr) {
-      if (!dateStr) return "--:--:--";
-      const d = new Date(dateStr);
-      return d.toLocaleTimeString("it-IT", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      });
-    }
-
-    function clamp(val, min, max) {
-      return Math.min(max, Math.max(min, val));
-    }
-
-    function classifyAir(aqi) {
-      if (aqi <= 50) return { label: "Aria eccellente", cls: "good" };
-      if (aqi <= 100) return { label: "Aria buona", cls: "good" };
-      if (aqi <= 150) return { label: "Qualità moderata", cls: "moderate" };
-      if (aqi <= 200) return { label: "Aria scadente", cls: "bad" };
-      return { label: "Aria pessima", cls: "very-bad" };
-    }
-
-    // Interpolazione colore notte → giorno in base all'altezza del Sole
-    function interpolateColor(color1, color2, factor) {
-      const c1 = parseInt(color1.slice(1), 16);
-      const c2 = parseInt(color2.slice(1), 16);
-
-      const r1 = (c1 >> 16) & 255, g1 = (c1 >> 8) & 255, b1 = c1 & 255;
-      const r2 = (c2 >> 16) & 255, g2 = (c2 >> 8) & 255, b2 = c2 & 255;
-
-      const r = Math.round(r1 + (r2 - r1) * factor);
-      const g = Math.round(g1 + (g2 - g1) * factor);
-      const b = Math.round(b1 + (b2 - b1) * factor);
-
-      return `rgb(${r}, ${g}, ${b})`;
-    }
-
-    // ================================
-    //  FASE LUNARE
-    // ================================
-    function getMoonPhaseIndex(date) {
-      const lp = 2551443; // lunghezza ciclo in secondi
-      const new_moon = Date.UTC(1970, 0, 7, 20, 35, 0); // riferimento
-      const now = date.getTime();
-      const phase = ((now - new_moon) / 1000) % lp;
-      const phaseFrac = phase / lp; // 0..1
-      const idx = Math.floor(phaseFrac * 8 + 0.5) & 7;
-      return idx; // 0..7
-    }
-
-    // ================================
-    //  ALBA / TRAMONTO
-    // ================================
-    function updateSunTimes() {
-      try {
-        const now = new Date();
-        const times = SunCalc.getTimes(now, LAT, LON);
-        const sunrise = times.sunrise;
-        const sunset = times.sunset;
-
-        const sunriseStr = sunrise.toLocaleTimeString("it-IT", {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-        const sunsetStr = sunset.toLocaleTimeString("it-IT", {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-
-        const sunTimesEl = document.getElementById("sunTimes");
-        sunTimesEl.innerHTML =
-          `<span>🌅 <strong>Alba:</strong> ${sunriseStr}</span>` +
-          `<span>🌇 <strong>Tramonto:</strong> ${sunsetStr}</span>`;
-      } catch (e) {
-        console.error("Errore SunCalc:", e);
-      }
-    }
-
-    // ================================
-    //  SOLE / LUNA + CIELO REALISTICO
-    // ================================
-    function updateSunMoonPositionAndSky() {
-      try {
-        const now = new Date();
-        const times = SunCalc.getTimes(now, LAT, LON);
-        const sunrise = times.sunrise;
-        const sunset = times.sunset;
-
-        const sky = document.getElementById("sky");
-        const sunMoon = document.getElementById("sunMoon");
-        const moonMask = document.getElementById("moonMask");
-
-        const isDay = now >= sunrise && now <= sunset;
-
-        // Sole/Luna
-        if (isDay) {
-          sunMoon.classList.add("sun");
-          sunMoon.classList.remove("moon");
-          moonMask.style.display = "none";
-        } else {
-          sunMoon.classList.add("moon");
-          sunMoon.classList.remove("sun");
-          moonMask.style.display = "block";
-
-          // Fase lunare
-          const idx = getMoonPhaseIndex(now);
-          for (let i = 0; i < 8; i++) {
-            sunMoon.classList.remove("phase-" + i);
-          }
-          sunMoon.classList.add("phase-" + idx);
-        }
-
-        // Traiettoria (come prima)
-        let start = isDay ? sunrise : sunset;
-        let end   = isDay ? sunset : new Date(sunrise.getTime() + 24*60*60*1000);
-
-        let total = end - start;
-        let current = now - start;
-        let pct = total > 0 ? current / total : 0.5;
-        if (pct < 0) pct = 0;
-        if (pct > 1) pct = 1;
-
-        const screenWidth = window.innerWidth;
-        const x = pct * (screenWidth + 160) - 80;
-
-        const maxHeight = window.innerHeight * 0.35;
-        const y = maxHeight - Math.sin(pct * Math.PI) * maxHeight;
-
-        sunMoon.style.left = `${x}px`;
-        sunMoon.style.top = `${y}px`;
-
-        // Colore cielo in base all'altezza del Sole
-        const pos = SunCalc.getPosition(now, LAT, LON);
-        const altitudeDeg = pos.altitude * 180 / Math.PI;
-
-        const DAY_COLOR = "#1f2b3a";
-        const NIGHT_COLOR = "#000814";
-
-        const ALT_NIGHT = -12; // sotto questa → notte piena
-        const ALT_DAY   = 45;  // sopra questa → giorno pieno
-
-        let blend;
-        if (altitudeDeg <= ALT_NIGHT) {
-          blend = 0;
-        } else if (altitudeDeg >= ALT_DAY) {
-          blend = 1;
-        } else {
-          blend = (altitudeDeg - ALT_NIGHT) / (ALT_DAY - ALT_NIGHT);
-        }
-        blend = clamp(blend, 0, 1);
-
-        sky.style.background = interpolateColor(NIGHT_COLOR, DAY_COLOR, blend);
-
-        // Classe night per stelle, nuvole ecc.
-        if (altitudeDeg <= 0) {
-          sky.classList.add("night");
-        } else {
-          sky.classList.remove("night");
-        }
-
-      } catch (e) {
-        console.error("Errore updateSunMoonPositionAndSky:", e);
-      }
-    }
-
-    // ================================
-    //  VENTO MAX (localStorage)
-    // ================================
-    let windMax = parseFloat(localStorage.getItem("windMax") || "0");
-    let windMaxDate = localStorage.getItem("windMaxDate") || "--";
-
-    function updateWindMaxDisplay() {
-      document.getElementById("windMaxValue").textContent =
-        windMax > 0 ? windMax.toFixed(1) + " km/h" : "-- km/h";
-      document.getElementById("windMaxTime").textContent = windMaxDate;
-    }
-
     updateWindMaxDisplay();
 
-    // ================================
-    //  FETCH THINGSPEAK & UPDATE UI
-    // ================================
-    async function fetchJson(url) {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      return res.json();
+    document.getElementById("statusText").textContent=
+      "Aggiornato: "+new Date(w.created_at||m.created_at).toLocaleTimeString("it-IT");
+
+    /* Animazioni meteo */
+    const aur=document.getElementById("aurora");
+    const fog=document.getElementById("fog");
+    const lightning=document.getElementById("lightning");
+
+    const hour=(new Date()).getHours();
+    const isNight = now<t.sunrise || now>t.sunset;
+
+    if(isNight && aqi<80 && hum<85) aur.style.opacity=0.45;
+    else aur.style.opacity=0;
+
+    if(hour<9 && hum>85) fog.style.opacity=0.6;
+    else fog.style.opacity=0;
+
+    if(rain>=1 && windVal>20 && Math.random()<0.2){
+      lightning.classList.add("flash");
+      setTimeout(()=>lightning.classList.remove("flash"),150);
     }
 
-    async function updateDashboard() {
-      try {
-        const [meteoData, windData] = await Promise.all([
-          fetchJson(
-            `https://api.thingspeak.com/channels/${METEO_CHANNEL}/feeds.json?results=60`
-          ),
-          fetchJson(
-            `https://api.thingspeak.com/channels/${WIND_CHANNEL}/feeds.json?results=60`
-          ),
-        ]);
+  }catch(e){
+    console.log("Errore:",e);
+  }
+}
 
-        const feedsMeteo = meteoData.feeds || [];
-        const feedsWind = windData.feeds || [];
+/* LOOP */
+setInterval(updateDashboard,20000);
+setInterval(updateSky,10000);
+setInterval(maybeShootStar,15000);
 
-        const lastMeteo = feedsMeteo[feedsMeteo.length - 1] || {};
-        const lastWind = feedsWind[feedsWind.length - 1] || {};
-
-        // ---- METEO ----
-        const pressure = toNumber(lastMeteo.field1);
-        const temp = toNumber(lastMeteo.field2);
-        const hum = toNumber(lastMeteo.field3);
-        const aqi = toNumber(lastMeteo.field4);
-
-        document.getElementById("pressureValue").textContent =
-          pressure.toFixed(0);
-        document.getElementById("tempValue").textContent = temp.toFixed(0);
-        document.getElementById("humValue").textContent = hum.toFixed(0);
-        document.getElementById("aqValue").textContent = aqi.toFixed(0);
-
-        document.getElementById("pressureAvg").textContent =
-          averageField(feedsMeteo, "field1").toFixed(1);
-        document.getElementById("tempAvg").textContent =
-          averageField(feedsMeteo, "field2").toFixed(1);
-        document.getElementById("humAvg").textContent =
-          averageField(feedsMeteo, "field3").toFixed(1);
-        document.getElementById("aqAvg").textContent =
-          averageField(feedsMeteo, "field4").toFixed(1);
-
-        const pressurePct = clamp(((pressure - 950) / (1050 - 950)) * 100, 0, 100);
-        const tempPct = clamp(((temp + 10) / (50 + 10)) * 100, 0, 100);
-        const humPct = clamp(hum, 0, 100);
-        const aqPct = clamp((aqi / 500) * 100, 0, 100);
-
-        document.getElementById("gaugePressure").style.width =
-          pressurePct + "%";
-        document.getElementById("gaugeTemp").style.width = tempPct + "%";
-        document.getElementById("gaugeHum").style.width = humPct + "%";
-        document.getElementById("gaugeAQ").style.width = aqPct + "%";
-
-        // ---- VENTO + PIOGGIA ----
-        const wind = toNumber(lastWind.field1);
-        const rainFlag = toNumber(lastWind.field2);
-
-        const rainStateEl = document.getElementById("rainState");
-        if (rainFlag >= 1) {
-          rainStateEl.textContent = "Bagnato";
-          rainStateEl.classList.remove("asciutto");
-          rainStateEl.classList.add("bagnato");
-        } else {
-          rainStateEl.textContent = "Asciutto";
-          rainStateEl.classList.remove("bagnato");
-          rainStateEl.classList.add("asciutto");
-        }
-
-        // vento max
-        if (wind > windMax) {
-          windMax = wind;
-          const now = new Date();
-          const hhmm = now.toLocaleTimeString("it-IT", {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-          const dstr = now.toLocaleDateString("it-IT");
-          windMaxDate = `${hhmm} - ${dstr}`;
-          localStorage.setItem("windMax", windMax.toFixed(1));
-          localStorage.setItem("windMaxDate", windMaxDate);
-        }
-        updateWindMaxDisplay();
-
-        const lastTime = lastWind.created_at || lastMeteo.created_at;
-        const timeStr = formatTime(lastTime);
-        const statusText = document.getElementById("statusText");
-        statusText.textContent =
-          `Aggiornato: ${timeStr} • Vento attuale: ${wind.toFixed(1)} km/h • Stato: ` +
-          (rainFlag >= 1 ? "Pioggia" : "Asciutto");
-
-        const qInfo = classifyAir(aqi);
-        const qBanner = document.getElementById("qualityBanner");
-        qBanner.classList.remove("good", "moderate", "bad", "very-bad");
-        qBanner.classList.add(qInfo.cls);
-        qBanner.querySelector("#qualityLabel").textContent = qInfo.label;
-
-        // ===== ANIMAZIONI METEO BASATE SU HUM / AQI / RAIN =====
-        const aurora = document.getElementById("aurora");
-        const fog = document.getElementById("fog");
-        const lightning = document.getElementById("lightning");
-
-        const now = new Date();
-        const hour = now.getHours();
-
-        const times = SunCalc.getTimes(now, LAT, LON);
-        const isNight = now < times.sunrise || now > times.sunset;
-
-        // Aurora: notte, aria buona, umidità non altissima
-        if (isNight && aqi < 80 && hum < 85) {
-          aurora.style.opacity = 0.5;
-        } else {
-          aurora.style.opacity = 0;
-        }
-
-        // Nebbia: mattino presto + umidità alta
-        if (hour < 9 && hum > 85) {
-          fog.style.opacity = 0.6;
-        } else {
-          fog.style.opacity = 0;
-        }
-
-        // Fulmine: se pioggia e vento sostenuto, flash casuale
-        if (rainFlag >= 1 && wind > 20 && Math.random() < 0.2) {
-          lightning.classList.add("flash");
-          setTimeout(() => lightning.classList.remove("flash"), 150);
-        }
-
-      } catch (err) {
-        console.error("Errore aggiornamento dashboard:", err);
-        document.getElementById("statusText").textContent =
-          "Errore lettura dati ThingSpeak";
-      }
-    }
-
-    // STELLA CADENTE RANDOM
-    function maybeShootStar() {
-      const shootingStar = document.getElementById("shootingStar");
-      const now = new Date();
-      const times = SunCalc.getTimes(now, LAT, LON);
-      const isNight = now < times.sunrise || now > times.sunset;
-      if (!isNight) return;
-      if (Math.random() < 0.4) {
-        shootingStar.classList.add("active");
-        setTimeout(() => shootingStar.classList.remove("active"), 1300);
-      }
-    }
-
-    // ================================
-    //  AVVIO
-    // ================================
-    updateSunTimes();
-    updateSunMoonPositionAndSky();
-    updateDashboard();
-
-    setInterval(updateDashboard, 20000);        // dati ogni 20s
-    setInterval(updateSunTimes, 5 * 60 * 1000); // alba/tramonto ogni 5 min
-    setInterval(updateSunMoonPositionAndSky, 10000);  // posizione + colore cielo ogni 10s
-    setInterval(maybeShootStar, 15000);         // stella cadente ogni tanto
-
-    window.addEventListener("resize", updateSunMoonPositionAndSky);
-  </script>
+updateDashboard();
+updateSky();
+</script>
 </body>
 </html>
