@@ -2,10 +2,10 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Langini Meteo – Dashboard V8.1</title>
+  <title>Langini Meteo – Dashboard V8.2</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- SunCalc per alba/tramonto + fasi lunari -->
+  <!-- SunCalc per alba/tramonto + fasi lunari + posizione Sole -->
   <script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
 
   <style>
@@ -32,7 +32,7 @@
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
         Roboto, sans-serif;
-      background: linear-gradient(to bottom, var(--bg-top), var(--bg-bottom));
+      background: #000814;
       color: #fff;
       min-height: 100vh;
       display: flex;
@@ -42,13 +42,13 @@
     .sky {
       position: relative;
       flex: 1;
-      background: linear-gradient(to bottom, #01224f, #0760c5);
-      transition: background 0.8s ease;
+      background: #1f2b3a;   /* colore giorno base, poi JS lo interpola */
+      transition: background 1.5s linear;
       overflow: hidden;
     }
 
     .sky.night {
-      background: radial-gradient(circle at 20% 0%, #243b6b, #020520 60%);
+      background: #000814;   /* colore notte base */
     }
 
     .stars {
@@ -252,6 +252,7 @@
       background: radial-gradient(circle at 40% 40%, #ffffff, #cfd8dc);
       box-shadow: 0 0 18px 8px rgba(200,200,255,0.5);
       animation: moonGlow 6s ease-in-out infinite;
+      position: relative;
     }
 
     @keyframes moonGlow {
@@ -270,7 +271,6 @@
       transform-origin:center center;
     }
 
-    /* 8 fasi (molto semplificate ma belle) */
     .moon.phase-0 .moon-phase-mask { /* nuova */
       transform: scaleX(1);
     }
@@ -283,7 +283,7 @@
     .moon.phase-3 .moon-phase-mask { /* gibbosa crescente */
       transform: translateX(-8%) scaleX(0.8);
     }
-    .moon.phase-4 .moon-phase-mask { /* piena (quasi niente ombra) */
+    .moon.phase-4 .moon-phase-mask { /* piena */
       transform: scaleX(0.02);
     }
     .moon.phase-5 .moon-phase-mask { /* gibbosa calante */
@@ -572,7 +572,7 @@
 
     <div class="content">
       <header>
-        <h1>🌟 Langini Meteo – Dashboard <span class="version">V8.1</span></h1>
+        <h1>🌟 Langini Meteo – Dashboard <span class="version">V8.2</span></h1>
         <div class="subtitle">
           Meteo + Vento + Pioggia (storico) + Dati immediati + Sky PRO + fasi lunari
         </div>
@@ -749,11 +749,25 @@
       return { label: "Aria pessima", cls: "very-bad" };
     }
 
+    // Interpolazione colore notte → giorno in base all'altezza del Sole
+    function interpolateColor(color1, color2, factor) {
+      const c1 = parseInt(color1.slice(1), 16);
+      const c2 = parseInt(color2.slice(1), 16);
+
+      const r1 = (c1 >> 16) & 255, g1 = (c1 >> 8) & 255, b1 = c1 & 255;
+      const r2 = (c2 >> 16) & 255, g2 = (c2 >> 8) & 255, b2 = c2 & 255;
+
+      const r = Math.round(r1 + (r2 - r1) * factor);
+      const g = Math.round(g1 + (g2 - g1) * factor);
+      const b = Math.round(b1 + (b2 - b1) * factor);
+
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
     // ================================
     //  FASE LUNARE
     // ================================
     function getMoonPhaseIndex(date) {
-      // Algoritmo semplice (0..7)
       const lp = 2551443; // lunghezza ciclo in secondi
       const new_moon = Date.UTC(1970, 0, 7, 20, 35, 0); // riferimento
       const now = date.getTime();
@@ -764,7 +778,7 @@
     }
 
     // ================================
-    //  ALBA / TRAMONTO + CIELO
+    //  ALBA / TRAMONTO
     // ================================
     function updateSunTimes() {
       try {
@@ -792,7 +806,7 @@
     }
 
     // ================================
-    //  SOLE / LUNA IN MOVIMENTO + LAYERS CIELO
+    //  SOLE / LUNA + CIELO REALISTICO
     // ================================
     function updateSunMoonPositionAndSky() {
       try {
@@ -807,7 +821,7 @@
 
         const isDay = now >= sunrise && now <= sunset;
 
-        // Icona (sole o luna)
+        // Sole/Luna
         if (isDay) {
           sunMoon.classList.add("sun");
           sunMoon.classList.remove("moon");
@@ -817,7 +831,7 @@
           sunMoon.classList.remove("sun");
           moonMask.style.display = "block";
 
-          // Fase lunare (classe phase-0..7)
+          // Fase lunare
           const idx = getMoonPhaseIndex(now);
           for (let i = 0; i < 8; i++) {
             sunMoon.classList.remove("phase-" + i);
@@ -825,7 +839,7 @@
           sunMoon.classList.add("phase-" + idx);
         }
 
-        // Calcolo delta tempo per la traiettoria
+        // Traiettoria (come prima)
         let start = isDay ? sunrise : sunset;
         let end   = isDay ? sunset : new Date(sunrise.getTime() + 24*60*60*1000);
 
@@ -835,26 +849,46 @@
         if (pct < 0) pct = 0;
         if (pct > 1) pct = 1;
 
-        // Orizzontale
         const screenWidth = window.innerWidth;
         const x = pct * (screenWidth + 160) - 80;
 
-        // Curva verticale
         const maxHeight = window.innerHeight * 0.35;
         const y = maxHeight - Math.sin(pct * Math.PI) * maxHeight;
 
         sunMoon.style.left = `${x}px`;
         sunMoon.style.top = `${y}px`;
 
-        // Cielo giorno/notte
-        if (isDay) {
-          sky.classList.remove("night");
+        // Colore cielo in base all'altezza del Sole
+        const pos = SunCalc.getPosition(now, LAT, LON);
+        const altitudeDeg = pos.altitude * 180 / Math.PI;
+
+        const DAY_COLOR = "#1f2b3a";
+        const NIGHT_COLOR = "#000814";
+
+        const ALT_NIGHT = -12; // sotto questa → notte piena
+        const ALT_DAY   = 45;  // sopra questa → giorno pieno
+
+        let blend;
+        if (altitudeDeg <= ALT_NIGHT) {
+          blend = 0;
+        } else if (altitudeDeg >= ALT_DAY) {
+          blend = 1;
         } else {
+          blend = (altitudeDeg - ALT_NIGHT) / (ALT_DAY - ALT_NIGHT);
+        }
+        blend = clamp(blend, 0, 1);
+
+        sky.style.background = interpolateColor(NIGHT_COLOR, DAY_COLOR, blend);
+
+        // Classe night per stelle, nuvole ecc.
+        if (altitudeDeg <= 0) {
           sky.classList.add("night");
+        } else {
+          sky.classList.remove("night");
         }
 
       } catch (e) {
-        console.error("Errore updateSunMoonPosition:", e);
+        console.error("Errore updateSunMoonPositionAndSky:", e);
       }
     }
 
@@ -981,9 +1015,10 @@
         const now = new Date();
         const hour = now.getHours();
 
-        // Aurora: notte, aria buona, umidità non altissima
         const times = SunCalc.getTimes(now, LAT, LON);
         const isNight = now < times.sunrise || now > times.sunset;
+
+        // Aurora: notte, aria buona, umidità non altissima
         if (isNight && aqi < 80 && hum < 85) {
           aurora.style.opacity = 0.5;
         } else {
@@ -1013,7 +1048,6 @@
     // STELLA CADENTE RANDOM
     function maybeShootStar() {
       const shootingStar = document.getElementById("shootingStar");
-      // solo di notte e con piccola probabilità
       const now = new Date();
       const times = SunCalc.getTimes(now, LAT, LON);
       const isNight = now < times.sunrise || now > times.sunset;
@@ -1033,8 +1067,8 @@
 
     setInterval(updateDashboard, 20000);        // dati ogni 20s
     setInterval(updateSunTimes, 5 * 60 * 1000); // alba/tramonto ogni 5 min
-    setInterval(updateSunMoonPositionAndSky, 10000);  // posizione sole/luna ogni 10s
-    setInterval(maybeShootStar, 15000); // stella cadente ogni tanto
+    setInterval(updateSunMoonPositionAndSky, 10000);  // posizione + colore cielo ogni 10s
+    setInterval(maybeShootStar, 15000);         // stella cadente ogni tanto
 
     window.addEventListener("resize", updateSunMoonPositionAndSky);
   </script>
