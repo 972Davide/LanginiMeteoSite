@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Langini Meteo – Dashboard V7.9</title>
+  <title>Langini Meteo – Dashboard V8.0</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- SunCalc per alba/tramonto -->
@@ -44,6 +44,7 @@
       flex: 1;
       background: linear-gradient(to bottom, #01224f, #0760c5);
       transition: background 0.8s ease;
+      overflow: hidden;
     }
 
     .sky.night {
@@ -59,10 +60,33 @@
       background-image: radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px);
       background-size: 3px 3px;
       mix-blend-mode: screen;
+      z-index: 1;
     }
 
     .sky.night .stars {
       opacity: 0.35;
+    }
+
+    /* SOLE / LUNA ANIMATI */
+    .sunmoon {
+      position: absolute;
+      top: 20%;
+      left: -80px;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      z-index: 2;
+      transition: left 1.5s linear, top 1.5s linear;
+    }
+
+    .sun {
+      background: radial-gradient(circle at 35% 35%, #fff8b0, #ffcc00, #ff9800);
+      box-shadow: 0 0 25px 10px rgba(255,180,0,0.7);
+    }
+
+    .moon {
+      background: radial-gradient(circle at 40% 40%, #ffffff, #cfd8dc);
+      box-shadow: 0 0 20px 8px rgba(200,200,255,0.4);
     }
 
     .content {
@@ -70,7 +94,7 @@
       margin: 0 auto;
       padding: 16px;
       position: relative;
-      z-index: 2;
+      z-index: 3;
       display: flex;
       flex-direction: column;
       gap: 16px;
@@ -324,11 +348,14 @@
 </head>
 <body>
   <div class="sky" id="sky">
+    <!-- Sole/Luna animati -->
+    <div class="sunmoon" id="sunMoon"></div>
+
     <div class="stars"></div>
     <div class="content">
       <header>
-        <h1>🌟 Langini Meteo – Dashboard <span class="version">V7.9</span></h1>
-        <div class="subtitle">Meteo + Vento + Pioggia (storico) + Dati immediati</div>
+        <h1>🌟 Langini Meteo – Dashboard <span class="version">V8.0</span></h1>
+        <div class="subtitle">Meteo + Vento + Pioggia (storico) + Dati immediati + Cielo dinamico</div>
 
         <!-- Pulsante dati in tempo reale -->
         <a href="http://192.168.1.20" class="btn-realtime">
@@ -526,14 +553,66 @@
           `<span>🌅 <strong>Alba:</strong> ${sunriseStr}</span>` +
           `<span>🌇 <strong>Tramonto:</strong> ${sunsetStr}</span>`;
 
-        const sky = document.getElementById("sky");
-        if (now < sunrise || now > sunset) {
-          sky.classList.add("night");
-        } else {
-          sky.classList.remove("night");
-        }
+        // Cielo giorno/notte gestito da updateSunMoonPosition
       } catch (e) {
         console.error("Errore SunCalc:", e);
+      }
+    }
+
+    // ================================
+    //  SOLE / LUNA IN MOVIMENTO
+    // ================================
+    function updateSunMoonPosition() {
+      try {
+        const now = new Date();
+        const times = SunCalc.getTimes(now, LAT, LON);
+        const sunrise = times.sunrise;
+        const sunset = times.sunset;
+
+        const sky = document.getElementById("sky");
+        const sunMoon = document.getElementById("sunMoon");
+
+        const isDay = now >= sunrise && now <= sunset;
+
+        // Icona (sole o luna)
+        if (isDay) {
+          sunMoon.classList.add("sun");
+          sunMoon.classList.remove("moon");
+        } else {
+          sunMoon.classList.add("moon");
+          sunMoon.classList.remove("sun");
+        }
+
+        // Calcolo delta tempo
+        let start = isDay ? sunrise : sunset;
+        let end   = isDay ? sunset : new Date(sunrise.getTime() + 24*60*60*1000);
+
+        let total = end - start;
+        let current = now - start;
+
+        let pct = total > 0 ? current / total : 0.5;
+        if (pct < 0) pct = 0;
+        if (pct > 1) pct = 1;
+
+        // Orizzontale
+        const screenWidth = window.innerWidth;
+        const x = pct * (screenWidth + 160) - 80;
+
+        // Curva verticale ad arco
+        const maxHeight = window.innerHeight * 0.35;
+        const y = maxHeight - Math.sin(pct * Math.PI) * maxHeight;
+
+        sunMoon.style.left = `${x}px`;
+        sunMoon.style.top = `${y}px`;
+
+        // Cielo giorno/notte
+        if (isDay) {
+          sky.classList.remove("night");
+        } else {
+          sky.classList.add("night");
+        }
+      } catch (e) {
+        console.error("Errore updateSunMoonPosition:", e);
       }
     }
 
@@ -598,7 +677,6 @@
         document.getElementById("aqAvg").textContent =
           averageField(feedsMeteo, "field4").toFixed(1);
 
-        // Gauge percentuali
         const pressurePct = clamp(((pressure - 950) / (1050 - 950)) * 100, 0, 100);
         const tempPct = clamp(((temp + 10) / (50 + 10)) * 100, 0, 100);
         const humPct = clamp(hum, 0, 100);
@@ -614,7 +692,6 @@
         const wind = toNumber(lastWind.field1);
         const rainFlag = toNumber(lastWind.field2);
 
-        // Aggiorna stato pioggia (solo Asciutto/Bagnato)
         const rainStateEl = document.getElementById("rainState");
         if (rainFlag >= 1) {
           rainStateEl.textContent = "Bagnato";
@@ -626,7 +703,7 @@
           rainStateEl.classList.add("asciutto");
         }
 
-        // Aggiorna vento massimo (in base all'ultimo valore > max)
+        // vento max
         if (wind > windMax) {
           windMax = wind;
           const now = new Date();
@@ -641,7 +718,6 @@
         }
         updateWindMaxDisplay();
 
-        // ---- STATUS BAR ----
         const lastTime = lastWind.created_at || lastMeteo.created_at;
         const timeStr = formatTime(lastTime);
         const statusText = document.getElementById("statusText");
@@ -649,7 +725,6 @@
           `Aggiornato: ${timeStr} • Vento attuale: ${wind.toFixed(1)} km/h • Stato: ` +
           (rainFlag >= 1 ? "Pioggia" : "Asciutto");
 
-        // ---- QUALITÀ ARIA BANNER ----
         const qInfo = classifyAir(aqi);
         const qBanner = document.getElementById("qualityBanner");
         qBanner.classList.remove("good", "moderate", "bad", "very-bad");
@@ -667,9 +742,14 @@
     //  AVVIO
     // ================================
     updateSunTimes();
+    updateSunMoonPosition();
     updateDashboard();
-    setInterval(updateDashboard, 20000);       // ogni 20 secondi
-    setInterval(updateSunTimes, 5 * 60 * 1000); // ogni 5 minuti
+
+    setInterval(updateDashboard, 20000);        // dati ogni 20s
+    setInterval(updateSunTimes, 5 * 60 * 1000); // alba/tramonto ogni 5 min
+    setInterval(updateSunMoonPosition, 10000);  // posizione sole/luna ogni 10s
+
+    window.addEventListener("resize", updateSunMoonPosition);
   </script>
 </body>
 </html>
