@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Langini Meteo – Dashboard V8.7 CHRISTMAS SKY (Protected)</title>
+  <title>Langini Meteo – Dashboard V8.7 CHRISTMAS SKY (Clean)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
 
@@ -95,14 +95,14 @@
     .sky {
       position:relative;
       flex:1;
-      background:#1f2b3a;   /* giorno */
+      background:#1f2b3a;
       transition:background 1.2s linear;
       overflow:hidden;
     }
 
     .sky.night { background:#000814; }
 
-    /* ⭐ STELLE FISSE (TWINKLE) */
+    /* ⭐ STELLE */
     .stars {
       position:absolute;
       inset:0;
@@ -128,7 +128,7 @@
       100% { opacity:0;   transform:scale(0.8); }
     }
 
-    /* ⭐ METEORE FREQUENTI */
+    /* ⭐ METEORE */
     .meteor {
       position:absolute;
       width:140px;
@@ -179,146 +179,7 @@
       border-radius:40px;
     }
 
-    /* ====== LAYER METEO ESISTENTI ====== */
-
-    .cloud-layer {
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      opacity:0 !important;
-    }
-
-    .aurora {
-      position:absolute;
-      top:5%;
-      left:0;
-      width:100%;
-      height:35%;
-      background:linear-gradient(180deg, rgba(120,255,200,0.45), rgba(80,120,255,0));
-      opacity:0;
-      z-index:1;
-      filter:blur(6px);
-      transition:opacity 1s ease;
-      pointer-events:none;
-      animation: auroraMove 12s ease-in-out infinite alternate;
-    }
-
-    @keyframes auroraMove {
-      0% { transform:translateX(-3%);}
-      100%{ transform:translateX(4%);}
-    }
-
-    .fog {
-      position:absolute;
-      bottom:0;
-      left:-10%;
-      width:120%;
-      height:30%;
-      background:radial-gradient(circle at 40% 80%, rgba(255,255,255,0.2), transparent 60%);
-      opacity:0;
-      filter:blur(5px);
-      transition:opacity 1s ease;
-      pointer-events:none;
-      z-index:2;
-      animation:fogFloat 40s linear infinite;
-    }
-
-    @keyframes fogFloat {
-      0% { transform:translateX(0);}
-      100%{ transform:translateX(5%);}
-    }
-
-    .lightning {
-      position:absolute;
-      inset:0;
-      background:radial-gradient(circle at 50% 0%, rgba(255,255,255,0.85), transparent 60%);
-      opacity:0;
-      transition:opacity 0.2s ease;
-      pointer-events:none;
-      z-index:5;
-    }
-
-    .lightning.flash { opacity:0.8; }
-
-    .shooting-star {
-      position:absolute;
-      top:-5%;
-      left:-5%;
-      width:120px;
-      height:2px;
-      background:linear-gradient(90deg, rgba(255,255,255,0.9), transparent);
-      opacity:0;
-      transform:rotate(25deg);
-      pointer-events:none;
-      z-index:4;
-    }
-
-    .shooting-star.active {
-      animation: shooting 1.2s ease-out forwards;
-    }
-
-    @keyframes shooting {
-      0% {opacity:0; transform:translate(-10vw,-10vh) rotate(25deg);}
-      20%{opacity:1;}
-      100%{opacity:0; transform:translate(40vw,40vh) rotate(25deg);}
-    }
-    /* ====== SOLE / LUNA ====== */
-
-    .sunmoon {
-      position:absolute;
-      top:10%;
-      left:-80px;
-      width:70px;
-      height:70px;
-      border-radius:50%;
-      z-index:3;
-      transition:left 1.2s linear, top 1.2s linear;
-      overflow:hidden;
-    }
-
-    .sun {
-      background:radial-gradient(circle at 35% 35%, #fff8b0, #ffcc00, #ff9800);
-      box-shadow:0 0 25px 12px rgba(255,180,0,0.8);
-      animation:sunPulse 5s infinite;
-    }
-
-    @keyframes sunPulse {
-      0% {box-shadow:0 0 20px 8px rgba(255,180,0,0.5);}
-      50%{box-shadow:0 0 32px 14px rgba(255,204,0,0.9);}
-      100%{box-shadow:0 0 20px 8px rgba(255,180,0,0.5);}
-    }
-
-    .moon {
-      background:radial-gradient(circle at 40% 40%, #ffffff, #cfd8dc);
-      box-shadow:0 0 18px 8px rgba(200,200,255,0.5);
-      animation:moonGlow 6s infinite;
-      position:relative;
-    }
-
-    @keyframes moonGlow {
-      0% {box-shadow:0 0 14px 6px rgba(200,200,255,0.3);}
-      50%{box-shadow:0 0 20px 10px rgba(220,220,255,0.6);}
-      100%{box-shadow:0 0 14px 6px rgba(200,200,255,0.3);}
-    }
-
-    .moon-phase-mask {
-      position:absolute;
-      inset:0;
-      background:#000814;
-      border-radius:50%;
-    }
-
-    .moon.phase-0 .moon-phase-mask { transform:scaleX(1); }
-    .moon.phase-1 .moon-phase-mask { transform:translateX(-35%) scaleX(0.2); }
-    .moon.phase-2 .moon-phase-mask { transform:translateX(-15%) scaleX(0.5); }
-    .moon.phase-3 .moon-phase-mask { transform:translateX(-8%)  scaleX(0.8); }
-    .moon.phase-4 .moon-phase-mask { transform:scaleX(0.02); }
-    .moon.phase-5 .moon-phase-mask { transform:translateX(8%)  scaleX(0.8); }
-    .moon.phase-6 .moon-phase-mask { transform:translateX(15%) scaleX(0.5); }
-    .moon.phase-7 .moon-phase-mask { transform:translateX(35%) scaleX(0.2); }
-
-    /* ====== CONTENUTO DASHBOARD ====== */
-
+    /* ====== CONTENUTO ====== */
     .content {
       position:relative;
       z-index:20;
@@ -338,7 +199,7 @@
       text-align:center;
       font-size:0.85rem;
       color:#e5e7eb;
-      margin-bottom:8px;
+      margin-bottom:12px;
       opacity:0.9;
     }
 
@@ -363,8 +224,12 @@
 
     .cards { display:grid; gap:14px; }
 
-    .top-cards { grid-template-columns:1fr 1fr; }
-    .bottom-cards { grid-template-columns:repeat(4,1fr); }
+    /* La sezione TOP-CARDS ora è vuota */
+    .top-cards { grid-template-columns:1fr; }
+
+    .bottom-cards {
+      grid-template-columns:repeat(4,1fr);
+    }
 
     @media(max-width:900px){
       .bottom-cards { grid-template-columns:1fr 1fr; }
@@ -399,25 +264,12 @@
       transition:width .3s;
       border-radius:inherit;
     }
-
-    .rainstate-value {
-      font-size:2rem;
-      text-align:center;
-    }
-    .rainstate-value.asciutto { color:#f57c00; }
-    .rainstate-value.bagnato { color:#1e88e5; }
-
-    .windmax-value {
-      font-size:2rem;
-      font-weight:700;
-      text-align:center;
-    }
   </style>
 </head>
 
 <body>
 
-<!-- OVERLAY PASSWORD -->
+<!-- PASSWORD -->
 <div id="lockScreen">
   <div class="lock-card">
     <div class="lock-title">🔐 Langini Meteo – Accesso</div>
@@ -428,20 +280,18 @@
   </div>
 </div>
 
+<!-- SFONDO -->
 <div class="sky" id="sky">
-  <!-- Stelle -->
+
   <div class="stars" id="stars"></div>
 
-  <!-- Meteore -->
   <div class="meteor" id="meteor1"></div>
   <div class="meteor" id="meteor2"></div>
 
-  <!-- Stella cometa -->
   <div class="comet" id="comet">
     <div class="comet-tail"></div>
   </div>
 
-  <!-- Livelli meteo -->
   <div class="cloud-layer"></div>
   <div class="cloud-layer"></div>
 
@@ -450,7 +300,6 @@
   <div class="lightning" id="lightning"></div>
   <div class="shooting-star" id="shootingStar"></div>
 
-  <!-- Sole/Luna -->
   <div class="sunmoon" id="sunMoon">
     <div class="moon-phase-mask" id="moonMask"></div>
   </div>
@@ -465,28 +314,7 @@
 
     <div class="status-bar" id="statusText">Caricamento dati…</div>
 
-    <div class="cards top-cards">
-
-      <!-- VELOCITÀ MASSIMA -->
-      <div class="card">
-        <div class="card-header">🌀 Velocità Max</div>
-        <div class="windmax-value" id="windMaxValue">--</div>
-        <div id="windMaxTime" style="font-size:0.8rem; color:#666;"></div>
-      </div>
-
-      <!-- VENTO REAL-TIME (NUOVO) -->
-      <div class="card">
-        <div class="card-header">🟢 Vento Real-Time</div>
-        <div class="windmax-value" id="windRealtime">--</div>
-      </div>
-
-      <!-- PIOGGIA -->
-      <div class="card">
-        <div class="card-header">🌧️ Pioggia</div>
-        <div class="rainstate-value" id="rainState">--</div>
-      </div>
-
-    </div>
+    <div class="cards top-cards"></div>
 
     <div class="cards bottom-cards">
 
@@ -522,12 +350,12 @@
 
   </div>
 </div>
+
+<!-- SCRIPT -->
 <script>
   const PASSWORD = "Doroty025";
 
-  const METEO_CHANNEL = 3149218;   // pressione, temp, umidità, MQ135
-  const WIND_CHANNEL  = 2956240;   // vento, pioggia
-
+  const METEO_CHANNEL = 3149218;
   const LAT = 45.7525;
   const LON = 8.8975;
 
@@ -536,6 +364,7 @@
   function clamp(v,a,b){ return Math.min(b,Math.max(a,v)); }
   function toNum(v){ const n=parseFloat(v); return isNaN(n)?0:n; }
 
+  /* ====== CIELO + SOLE/LUNA ====== */
   function interpolateColor(c1,c2,t){
     const a=parseInt(c1.slice(1),16);
     const b=parseInt(c2.slice(1),16);
@@ -549,13 +378,12 @@
 
   function moonPhaseIndex(date){
     const lp=2551443;
-    const new_moon=Date.UTC(1970,0,7,20,35,0);
+    const nm=Date.UTC(1970,0,7,20,35,0);
     const now=date.getTime();
-    const phase=((now-new_moon)/1000)%lp;
+    const phase=((now-nm)/1000)%lp;
     return Math.floor((phase/lp)*8+0.5)&7;
   }
 
-  /* ====== CIELO (SOLE/LUNA + COLORE) ====== */
   function updateSky(){
     if(!unlocked) return;
 
@@ -574,7 +402,7 @@
       SM.classList.add("sun");
       SM.classList.remove("moon");
       MASK.style.display="none";
-    }else{
+    } else {
       SM.classList.remove("sun");
       SM.classList.add("moon");
       MASK.style.display="block";
@@ -584,22 +412,21 @@
       SM.classList.add("phase-"+idx);
     }
 
-    const start = isDay ? times.sunrise : times.sunset;
-    const end   = isDay ? times.sunset  : new Date(times.sunrise.getTime()+86400000);
+    const start=isDay ? times.sunrise : times.sunset;
+    const end=isDay ? times.sunset : new Date(times.sunrise.getTime()+86400000);
     let p=(now-start)/(end-start);
     p=clamp(p,0,1);
 
     const W = window.innerWidth;
+    const base=window.innerHeight*0.05;
+    const amp =window.innerHeight*0.20;
+    const y=base + (1 - Math.sin(p*Math.PI)) * amp;
 
-    const baseTop = window.innerHeight * 0.05;
-    const amp     = window.innerHeight * 0.20;
-    const y       = baseTop + (1 - Math.sin(p*Math.PI)) * amp;
+    SM.style.left=`${p*(W+160)-80}px`;
+    SM.style.top =`${y}px`;
 
-    SM.style.left = `${p*(W+160)-80}px`;
-    SM.style.top  = `${y}px`;
-
-    const DAY   = "#1f2b3a";
-    const NIGHT = "#000814";
+    const DAY="#1f2b3a";
+    const NIGHT="#000814";
 
     let blend;
     const ALT_N=-12, ALT_D=45;
@@ -608,230 +435,157 @@
     else if(alt>=ALT_D) blend=1;
     else blend=(alt-ALT_N)/(ALT_D-ALT_N);
 
-    SKY.style.background = interpolateColor(NIGHT,DAY,blend);
+    SKY.style.background=interpolateColor(NIGHT,DAY,blend);
 
     if(alt<=0) SKY.classList.add("night");
     else SKY.classList.remove("night");
   }
 
-  /* ====== ALBA / TRAMONTO ====== */
-  function updateSunTimes(){
-    if(!unlocked) return;
-
-    const now=new Date();
-    const times=SunCalc.getTimes(now,LAT,LON);
-    const fmt = (d)=> d.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
-    document.getElementById("sunTimes").textContent =
-      "Alba: " + fmt(times.sunrise) + " • Tramonto: " + fmt(times.sunset);
-  }
-
   /* ====== STELLE ====== */
   function initStars(){
     const container=document.getElementById("stars");
-    const count=90;
-    for(let i=0;i<count;i++){
+    for(let i=0;i<90;i++){
       const s=document.createElement("div");
       s.className="star";
-      s.style.top  = Math.random()*100+"%";
-      s.style.left = Math.random()*100+"%";
-      s.style.animationDelay = (Math.random()*3)+"s";
+      s.style.top=Math.random()*100+"%";
+      s.style.left=Math.random()*100+"%";
+      s.style.animationDelay=(Math.random()*3)+"s";
       container.appendChild(s);
     }
   }
 
-  /* ====== NOTTE TRUE/FALSE ====== */
   function isNightTime() {
-    const now = new Date();
-    const times = SunCalc.getTimes(now, LAT, LON);
-    return now < times.sunrise || now > times.sunset;
+    const now=new Date();
+    const t=SunCalc.getTimes(now,LAT,LON);
+    return now<t.sunrise || now>t.sunset;
   }
 
   function toggleStars() {
-    if (!unlocked) return;
+    if(!unlocked) return;
     document.getElementById("stars").style.opacity = isNightTime() ? 1 : 0;
   }
 
   /* ====== METEORE ====== */
   function triggerMeteor(id){
-    if (!unlocked || !isNightTime()) return;
+    if(!unlocked || !isNightTime()) return;
 
     const el=document.getElementById(id);
-    const startY = 5 + Math.random()*35;
-    const startX = -200 - Math.random()*200;
+    const y=5+Math.random()*35;
+    const x=-200-Math.random()*200;
 
-    el.style.top  = startY + "vh";
-    el.style.left = startX + "px";
-    el.style.opacity = 1;
-    el.style.animation = "none";
+    el.style.top=y+"vh";
+    el.style.left=x+"px";
+    el.style.opacity=1;
+    el.style.animation="none";
     void el.offsetWidth;
-    el.style.animation = "meteorMove 1.2s linear forwards";
+    el.style.animation="meteorMove 1.2s linear forwards";
 
-    setTimeout(() => el.style.opacity = 0, 1300);
+    setTimeout(()=>el.style.opacity=0,1300);
   }
 
   function scheduleMeteors(){
-    const delay = 5000 + Math.random()*7000;
+    const delay=5000+Math.random()*7000;
     setTimeout(()=>{
-      if (isNightTime()) {
+      if(isNightTime()){
         triggerMeteor("meteor1");
-        if (Math.random() < 0.4) triggerMeteor("meteor2");
+        if(Math.random()<0.4) triggerMeteor("meteor2");
       }
       scheduleMeteors();
-    }, delay);
+    },delay);
   }
 
   /* ====== SHOOTING STAR ====== */
   function maybeStar(){
-    if (!unlocked || !isNightTime()) return;
-    if (Math.random() < 0.20) {
+    if(!unlocked || !isNightTime()) return;
+    if(Math.random()<0.2){
       const s=document.getElementById("shootingStar");
       s.classList.add("active");
       setTimeout(()=>s.classList.remove("active"),1300);
     }
   }
 
-  /* ====== STELLA COMETA ====== */
+  /* ====== COMETA ====== */
   function updateComet(){
     if(!unlocked) return;
-    const comet=document.getElementById("comet");
-    const now=new Date();
-    const m=now.getMonth();
-    const d=now.getDate();
 
-    if(m!==11 || d<1 || d>25){
-      comet.style.opacity=0;
-      comet.classList.remove("big");
+    const c=document.getElementById("comet");
+    const d=new Date();
+    const m=d.getMonth();
+    const day=d.getDate();
+
+    if(m!==11 || day<1 || day>25){
+      c.style.opacity=0;
+      c.classList.remove("big");
       return;
     }
 
-    const width = window.innerWidth;
-    comet.style.opacity=1;
+    const width=window.innerWidth;
+    c.style.opacity=1;
 
-    if(d<25){
-      const progress = (d-1)/24;
-      const left = -200 + progress*(width+200);
-      comet.classList.remove("big");
-      comet.style.top  = "12vh";
-      comet.style.left = left+"px";
+    if(day<25){
+      const progress=(day-1)/24;
+      c.classList.remove("big");
+      c.style.top="12vh";
+      c.style.left=(-200 + progress*(width+200))+"px";
     } else {
-      comet.classList.add("big");
-      const size = 140;
-      const left = (width/2 - size/2);
-      comet.style.top  = "15vh";
-      comet.style.left = left+"px";
+      c.classList.add("big");
+      const size=140;
+      c.style.top="15vh";
+      c.style.left=(width/2 - size/2)+"px";
     }
   }
 
   window.addEventListener("resize", updateComet);
 
-  /* ====== WIND MAX ====== */
-  let windMax=parseFloat(localStorage.getItem("windMax")||"0");
-  let windMaxTime=localStorage.getItem("windMaxTime")||"--";
-
-  function updateWindMaxDisp(){
-    document.getElementById("windMaxValue").textContent =
-      windMax>0 ? windMax.toFixed(1)+" km/h" : "--";
-    document.getElementById("windMaxTime").textContent = windMaxTime;
-  }
-  updateWindMaxDisp();
-
-  /* ====== DASHBOARD THINGSPEAK (20 sec) ====== */
+  /* ====== DASHBOARD ====== */
   async function updateDashboard(){
     if(!unlocked) return;
+
     try{
-      const meteo = await fetch(`https://api.thingspeak.com/channels/${METEO_CHANNEL}/feeds.json?results=60`)
-        .then(r=>r.json());
-      const wind  = await fetch(`https://api.thingspeak.com/channels/${WIND_CHANNEL}/feeds.json?results=60`)
-        .then(r=>r.json());
+      const meteo = await fetch(
+        `https://api.thingspeak.com/channels/${METEO_CHANNEL}/feeds.json?results=60`
+      ).then(r=>r.json());
 
       const m = meteo.feeds?.at(-1) || {};
-      const w = wind.feeds?.at(-1)  || {};
 
-      const pressure = toNum(m.field1);
-      const temp     = toNum(m.field2);
-      const hum      = toNum(m.field3);
-      const aqi      = toNum(m.field4);
+      const pressure=toNum(m.field1);
+      const temp=toNum(m.field2);
+      const hum=toNum(m.field3);
+      const aqi=toNum(m.field4);
 
-      document.getElementById("pressureValue").textContent = pressure ? pressure.toFixed(0) : "--";
-      document.getElementById("tempValue").textContent     = temp ? temp.toFixed(0) : "--";
-      document.getElementById("humValue").textContent      = hum ? hum.toFixed(0) : "--";
-      document.getElementById("aqValue").textContent       = aqi ? aqi.toFixed(0) : "--";
+      document.getElementById("pressureValue").textContent =
+        pressure ? pressure.toFixed(0) : "--";
+
+      document.getElementById("tempValue").textContent =
+        temp ? temp.toFixed(0) : "--";
+
+      document.getElementById("humValue").textContent =
+        hum ? hum.toFixed(0) : "--";
+
+      document.getElementById("aqValue").textContent =
+        aqi ? aqi.toFixed(0) : "--";
 
       document.getElementById("gaugePressure").style.width =
         clamp((pressure-950)/100*100,0,100)+"%";
-      document.getElementById("gaugeTemp").style.width     =
+
+      document.getElementById("gaugeTemp").style.width =
         clamp((temp+10)/60*100,0,100)+"%";
-      document.getElementById("gaugeHum").style.width      = hum+"%";
-      document.getElementById("gaugeAQ").style.width       =
+
+      document.getElementById("gaugeHum").style.width =
+        hum+"%";
+
+      document.getElementById("gaugeAQ").style.width =
         clamp(aqi/500*100,0,100)+"%";
 
-      const rain=toNum(w.field2);
-      const rEl=document.getElementById("rainState");
-
-      if(rain>=1){
-        rEl.textContent="Bagnato";
-        rEl.classList.remove("asciutto");
-        rEl.classList.add("bagnato");
-      } else {
-        rEl.textContent="Asciutto";
-        rEl.classList.remove("bagnato");
-        rEl.classList.add("asciutto");
-      }
-
-      const windVal=toNum(w.field1);
-      if(windVal>windMax){
-        windMax=windVal;
-        const now=new Date();
-        windMaxTime =
-          now.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"})+
-          " - "+now.toLocaleDateString("it-IT");
-        localStorage.setItem("windMax",windMax.toFixed(1));
-        localStorage.setItem("windMaxTime",windMaxTime);
-      }
-      updateWindMaxDisp();
-
       document.getElementById("statusText").textContent =
-        "Aggiornato: "+new Date(w.created_at || m.created_at).toLocaleTimeString("it-IT");
-
-      const aur=document.getElementById("aurora");
-      const fog=document.getElementById("fog");
-      const lightning=document.getElementById("lightning");
-      const hour=(new Date()).getHours();
-
-      const isNight = hour < 6 || hour > 20;
-      aur.style.opacity = (isNight && aqi<80) ? 0.45 : 0;
-      fog.style.opacity = (hour < 9 && hum>85) ? 0.55 : 0;
-
-      if(rain>=1 && windVal>20 && Math.random()<0.15){
-        lightning.classList.add("flash");
-        setTimeout(()=>lightning.classList.remove("flash"),150);
-      }
-
-    }catch(e){
-      console.log("Errore updateDashboard:",e);
-    }
-  }
-
-  /* ====== VENTO REAL-TIME (ogni 2s) ====== */
-  async function updateRealtimeWind() {
-    if (!unlocked) return;
-
-    try {
-      const wind = await fetch(`https://api.thingspeak.com/channels/${WIND_CHANNEL}/feeds.json?results=1`)
-        .then(r=>r.json());
-
-      const w = wind.feeds?.at(-1) || {};
-      const windVal = toNum(w.field1);
-
-      document.getElementById("windRealtime").textContent =
-        windVal ? windVal.toFixed(1) + " km/h" : "--";
+        "Aggiornato: " + new Date(m.created_at).toLocaleTimeString("it-IT");
 
     } catch(e){
-      console.log("Errore updateRealtimeWind:", e);
+      console.log("Errore updateDashboard:", e);
     }
   }
 
-  /* ====== LOOP PERIODICI ====== */
+  /* ====== LOOP ====== */
   function tickSky(){
     updateSky();
     toggleStars();
@@ -839,48 +593,51 @@
     updateSunTimes();
   }
 
-  /* ====== PASSWORD ====== */
+  function updateSunTimes(){
+    if(!unlocked) return;
+    const now=new Date();
+    const t=SunCalc.getTimes(now,LAT,LON);
+    const f = d=>d.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
+    document.getElementById("sunTimes").textContent =
+      "Alba: "+f(t.sunrise)+" • Tramonto: "+f(t.sunset);
+  }
+
+  /* ====== LOGIN ====== */
   function doUnlock(){
-    unlocked = true;
-    document.getElementById("lockScreen").style.display = "none";
-    localStorage.setItem("langini_auth", "ok");
+    unlocked=true;
+    document.getElementById("lockScreen").style.display="none";
+    localStorage.setItem("langini_auth","ok");
     tickSky();
     updateDashboard();
-    updateRealtimeWind();
   }
 
   function handleLogin(){
-    const pwd = (document.getElementById("lockPassword").value || "").trim();
-    const err = document.getElementById("lockError");
-    if(pwd === PASSWORD){
-      err.textContent = "";
+    const pwd=document.getElementById("lockPassword").value.trim();
+    if(pwd===PASSWORD){
       doUnlock();
     } else {
-      err.textContent = "Password errata.";
+      document.getElementById("lockError").textContent="Password errata.";
     }
   }
 
   function initAuth(){
-    if(localStorage.getItem("langini_auth") === "ok"){
+    if(localStorage.getItem("langini_auth")==="ok"){
       doUnlock();
     }
   }
 
-  /* ====== INIZIALIZZAZIONE ====== */
+  /* ====== START ====== */
   initStars();
   initAuth();
   scheduleMeteors();
 
-  // Intervalli
   setInterval(tickSky,10000);
   setInterval(updateDashboard,20000);
   setInterval(maybeStar,15000);
-  setInterval(updateRealtimeWind,2000);
 
-  // Login
   document.getElementById("lockButton").addEventListener("click", handleLogin);
-  document.getElementById("lockPassword").addEventListener("keydown", (e)=>{
-    if(e.key === "Enter") handleLogin();
+  document.getElementById("lockPassword").addEventListener("keydown", e=>{
+    if(e.key==="Enter") handleLogin();
   });
 </script>
 
