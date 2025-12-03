@@ -55,6 +55,7 @@ function starLoop() {
 // Dashboard update
 function dataLoop() {
   if (!unlocked) return;
+  tickSunMoon();
   updateDashboard();
 }
 
