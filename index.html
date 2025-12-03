@@ -511,6 +511,91 @@ function updateSky() {
     SKY.style.background = `linear-gradient(${DAY}, ${NIGHT})`;
 }
 </script>
+<script>
+/* ============================================================
+   ORBITA SOLE/LUNA REALISTICA basata su alba/tramonto veri
+   Orbita corretta per layout 1920×1080
+   ============================================================ */
+
+function updateSky() {
+    if (!unlocked) return;
+
+    /* ----- ORA LOCALE ----- */
+    const now = new Date();
+    const nowL = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+
+    /* ----- POSIZIONE (Venegono Superiore) ----- */
+    const LAT = 45.7525;
+    const LON = 8.8975;
+
+    const times = SunCalc.getTimes(nowL, LAT, LON);
+    const pos   = SunCalc.getPosition(nowL, LAT, LON);
+    const alt   = pos.altitude * 180 / Math.PI;
+
+    const SKY = document.getElementById("sky");
+    const SM  = document.getElementById("sunMoon");
+
+    if (!SM || !SKY) return;
+
+    /* ============================================================
+       CALCOLO PROGRESSIONE GIORNO/NOTTE
+       p = 0 → alba
+       p = 1 → tramonto
+       ============================================================ */
+    let p = 0;
+
+    if (nowL < times.sunrise) {
+        p = 0; // notte prima dell’alba
+    } else if (nowL > times.sunset) {
+        p = 1; // dopo il tramonto
+    } else {
+        p = (nowL - times.sunrise) / (times.sunset - times.sunrise);
+    }
+
+    /* Clamp di sicurezza */
+    p = Math.max(0, Math.min(1, p));
+
+    /* ============================================================
+       ORBITA PERFETTA PER 1920×1080
+       Sole/Luna passano ESATTAMENTE al centro verticale
+       ============================================================ */
+
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+
+    /* Centro orbita e raggio verticale */
+    const centerY = H * 0.38;   // posizione verticale del centro curva
+    const radiusY = H * 0.28;   // ampiezza dell’arco
+
+    /* Calcolo posizione */
+    const y = centerY - Math.sin(p * Math.PI) * radiusY;
+    const x = p * (W + 200) - 100;
+
+    SM.style.left = `${x}px`;
+    SM.style.top  = `${y}px`;
+
+    /* ============================================================
+       COMMUTAZIONE SOLE / LUNA
+       ============================================================ */
+    const isDay = nowL >= times.sunrise && nowL <= times.sunset;
+    SM.className = isDay ? "sun" : "moon";
+
+    /* ============================================================
+       COLORE CIELO in base all’altitudine del sole
+       ============================================================ */
+
+    const NIGHT = "#000814";
+    const DAY   = "#1f2b3a";
+
+    const ALT_N = -8;   // inizia blu notte
+    const ALT_D =  35;  // cielo pieno giorno
+
+    let blend = (alt - ALT_N) / (ALT_D - ALT_N);
+    blend = Math.max(0, Math.min(1, blend));
+
+    SKY.style.background = `linear-gradient(${DAY}, ${NIGHT})`;
+}
+</script>
 
 </body>
 </html>
