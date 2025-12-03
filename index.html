@@ -492,6 +492,14 @@
   }
 
   /* ====== STELLE ====== */
+  document.getElementById("lockButton").addEventListener("click", () => {
+  handleLogin();
+});
+
+document.getElementById("lockPassword").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") handleLogin();
+});
+
   function initStars(){
     const container=document.getElementById("stars");
     for(let i=0;i<90;i++){
@@ -659,10 +667,18 @@
   setInterval(tickSky,10000);
   setInterval(updateDashboard,20000);
 
-  document.getElementById("lockButton").addEventListener("click", handleLogin);
-  document.getElementById("lockPassword").addEventListener("keydown", e=>{
-    if(e.key==="Enter") handleLogin();
-  });
+// Fix listener password
+const btn = document.getElementById("lockButton");
+const pwd = document.getElementById("lockPassword");
+
+btn.addEventListener("click", () => {
+  handleLogin();
+});
+
+pwd.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") handleLogin();
+});
+
 </script>
 
 </body>
