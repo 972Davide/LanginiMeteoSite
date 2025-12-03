@@ -1,46 +1,36 @@
-/* =====================================================
-   SOLE & LUNA – Dimensione 80px + glow medio
-===================================================== */
+/* =======================================================
+   SOLE + LUNA (dimensioni, stile, glow)
+======================================================= */
 
 #sunMoon {
     position: absolute;
     width: 80px;
     height: 80px;
-    border-radius: 50%;
-    overflow: hidden;
     pointer-events: none;
-    z-index: 5;
-
-    /* movimento fluido */
-    transition: 
-        top 0.4s linear,
-        left 0.4s linear;
+    transition: top 0.8s linear, left 0.8s linear;
 }
 
-/* ---------------- SOLE ---------------- */
-#sunMoon.sun {
-    background: radial-gradient(circle at 35% 35%, #fff5b0, #ffd34f, #f7a600);
-    box-shadow: 0 0 28px 10px rgba(255, 200, 80, 0.55); /* glow medio */
+/* ---------- SOLE ---------- */
+.sun {
+    background: radial-gradient(circle at 50% 50%, #fff8a8, #ffcc33);
+    border-radius: 50%;
+    box-shadow: 0 0 20px 10px rgba(255,200,50,0.4),
+                0 0 40px 20px rgba(255,170,0,0.25);
 }
 
-/* ---------------- LUNA ---------------- */
-#sunMoon.moon {
-    background: radial-gradient(circle at 40% 40%, #f8f8f8, #bfbfbf, #7d7d7d);
-    box-shadow: 0 0 18px 6px rgba(180, 180, 255, 0.4); /* glow medio */
+/* ---------- LUNA REALISTICA ---------- */
+.moon {
+    background: radial-gradient(circle at 30% 30%, #ffffff, #bbbbbb);
+    border-radius: 50%;
+    box-shadow: 0 0 12px 6px rgba(150,150,150,0.3);
 }
 
-/* maschera per fasi lunari */
-.moon-phase-mask {
+/* Ombra fase lunare */
+.moon::after {
+    content: "";
     position: absolute;
     inset: 0;
-    width: 80px;
-    height: 80px;
+    background: radial-gradient(circle at 70% 30%, #000 60%, transparent 100%);
     border-radius: 50%;
-    background: #000;
-    mix-blend-mode: multiply;
-    opacity: 0.88;
+    opacity: 0.55;
 }
-
-/* visibilità */
-.night #sunMoon.sun { opacity: 0; }
-.day   #sunMoon.moon { opacity: 0; }
