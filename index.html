@@ -443,14 +443,40 @@
     let p = (now-start)/(end-start);
     p = clamp(p,0,1);
 
-    const W = window.innerWidth;
-    const H = window.innerHeight;
+    /* ==========================================================
+   ORBITA ULTRA-PRECISA (tra titolo e cards)
+   ========================================================== */
 
-    const orbitH = H*0.28;
-    const baseY  = H*0.75;
+const W = window.innerWidth;
+const H = window.innerHeight;
 
-    const x = p*(W+220)-110;
-    const y = baseY - Math.sin(p*Math.PI)*(baseY - H*0.25);
+/*
+    MISURE CHIAVE (in percentuale dello schermo)
+
+    - Il titolo è intorno al 20% dell'altezza
+    - Le cards iniziano intorno al 55%
+    - L'orbita deve stare esattamente tra questi due limiti.
+*/
+
+const titoloY = H * 0.20;     // posizione media del titolo
+const cardsY  = H * 0.55;     // posizione media delle cards
+
+// Punto più alto dell'orbita = centro visivo tra titolo e cards
+const zenithY = (titoloY + cardsY) / 2;
+
+// Orizzonte (alba/tramonto) leggermente sotto le cards
+const horizonY = cardsY + 40;
+
+// Calcolo Y con curva sinusoidale realistica
+const y = horizonY - Math.sin(p * Math.PI) * (horizonY - zenithY);
+
+// Calcolo X (da sinistra a destra)
+const x = p * (W + 220) - 110;
+
+// Applica posizione al sole/luna
+SM.style.left = `${x}px`;
+SM.style.top  = `${y}px`;
+
 
     SM.style.left = x+"px";
     SM.style.top  = y+"px";
