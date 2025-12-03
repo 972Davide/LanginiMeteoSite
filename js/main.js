@@ -14,7 +14,6 @@ function handleLogin() {
         // Avvio immediato
         tickSky();
         tickSunMoon();
-        updateSunTimes();
         updateDashboard();
     } else {
         document.getElementById("lockError").textContent = "Password errata.";
