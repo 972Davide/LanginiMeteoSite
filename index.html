@@ -1,102 +1,113 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Langini Meteo – Desktop Edition</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Libreria SunCalc -->
-    <script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
-
-    <!-- CSS MODULARI -->
+    <!-- CSS PRINCIPALI -->
     <link rel="stylesheet" href="css/layout.css">
-    <link rel="stylesheet" href="css/sky.css">
+    <link rel="stylesheet" href="css/stars.css">
+    <link rel="stylesheet" href="css/meteors.css">
     <link rel="stylesheet" href="css/sunmoon.css">
     <link rel="stylesheet" href="css/password.css">
+
+    <!-- SunCalc -->
+    <script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 </head>
 
 <body>
 
-<!-- 🔐 SCHERMATA PASSWORD -->
-<div id="lockScreen">
-    <div class="lock-card">
-        <div class="lock-title">🔐 Langini Meteo – Accesso</div>
-        <div class="lock-sub">Inserisci la password per visualizzare la dashboard.</div>
+    <!-- ================= SFONDO (SKY) ================= -->
+    <div id="sky"></div>
 
-        <input type="password" id="lockPassword" class="lock-input" placeholder="Password">
-        <button id="lockButton" class="lock-btn">Entra</button>
+    <!-- STELLE -->
+    <div id="stars"></div>
 
-        <div id="lockError" class="lock-error"></div>
-    </div>
-</div>
+    <!-- STELLE LAMPEGGIANTI -->
+    <div id="twinkling"></div>
 
-<!-- 🌌 SFONDO CIELO -->
-<div id="sky" class="sky">
+    <!-- METEORE -->
+    <div id="meteors"></div>
 
-    <!-- ⭐ Stelle -->
-    <div id="stars" class="stars"></div>
+    <!-- SOLE / LUNA -->
+    <div id="sunMoon"></div>
 
-    <!-- 🌠 Meteore -->
-    <div id="meteor1" class="meteor"></div>
-    <div id="meteor2" class="meteor"></div>
-
-    <!-- 🌞/🌙 Sole & Luna -->
-    <div id="sunMoon" class="sunmoon">
-        <div id="moonMask" class="moon-phase-mask"></div>
-    </div>
-
-    <!-- 📄 CONTENUTO -->
-    <div class="content">
-
-        <h1>🌟 Langini Meteo – Desktop Edition</h1>
-        <div id="sunTimes" class="sun-times">Alba: --:-- • Tramonto: --:--</div>
-        <div id="statusText" class="status-bar">Caricamento dati…</div>
-
-        <!-- 🌡 CARDS -->
-        <div class="cards bottom-cards">
-
-            <div class="card">
-                <div class="card-header">Pressione</div>
-                <div id="pressureValue" class="value">--</div>
-                <div class="value-unit">hPa</div>
-                <div class="gauge"><div id="gaugePressure" class="gauge-fill"></div></div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">Temperatura</div>
-                <div id="tempValue" class="value">--</div>
-                <div class="value-unit">°C</div>
-                <div class="gauge"><div id="gaugeTemp" class="gauge-fill"></div></div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">Umidità</div>
-                <div id="humValue" class="value">--</div>
-                <div class="value-unit">%</div>
-                <div class="gauge"><div id="gaugeHum" class="gauge-fill"></div></div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">Qualità Aria</div>
-                <div id="aqValue" class="value">--</div>
-                <div class="value-unit">AQI</div>
-                <div class="gauge"><div id="gaugeAQ" class="gauge-fill"></div></div>
-            </div>
-
+    <!-- ================= LOCKSCREEN PASSWORD ================= -->
+    <div id="lockScreen">
+        <div class="lockBox">
+            <h2>Inserisci Password</h2>
+            <input id="lockPassword" type="password" placeholder="Password">
+            <button id="lockButton">Entra</button>
+            <p id="lockError"></p>
         </div>
     </div>
-</div>
 
-<!-- ===========================
-     SCRIPT MODULARI
-=========================== -->
+    <!-- ================= DASHBOARD ================= -->
+    <div id="mainContent">
 
-<script src="js/sky.js"></script>
-<script src="js/stars.js"></script>
-<script src="js/meteors.js"></script>
-<script src="js/sunmoon.js"></script>
-<script src="js/dashboard.js"></script>
-<script src="js/main.js"></script>
+        <h1 class="title">
+            <span class="sunIcon">☀️</span> Langini Meteo – Desktop Edition
+        </h1>
+
+        <div id="sunTimes">
+            Alba: <span id="alba">--:--</span> • Tramonto: <span id="tramonto">--:--</span>
+        </div>
+
+        <div id="updateTime">
+            Aggiornato: <span id="lastUpdate">--:--:--</span>
+        </div>
+
+        <!-- CARDS DATI -->
+        <div class="cards">
+            <div class="card">
+                <h3>Pressione</h3>
+                <div id="pressione" class="value">--</div>
+                <div class="um">hPa</div>
+                <div class="bar"><div id="pressBar"></div></div>
+            </div>
+
+            <div class="card">
+                <h3>Temperatura</h3>
+                <div id="temperatura" class="value">--</div>
+                <div class="um">°C</div>
+                <div class="bar"><div id="tempBar"></div></div>
+            </div>
+
+            <div class="card">
+                <h3>Umidità</h3>
+                <div id="umidita" class="value">--</div>
+                <div class="um">%</div>
+                <div class="bar"><div id="humBar"></div></div>
+            </div>
+
+            <div class="card">
+                <h3>Qualità Aria</h3>
+                <div id="aqi" class="value">--</div>
+                <div class="um">AQI</div>
+                <div class="bar"><div id="aqiBar"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= JAVASCRIPT ================= -->
+
+    <!-- Moduli Effetto Cielo -->
+    <script src="js/stars.js"></script>
+    <script src="js/meteors.js"></script>
+    <script src="js/sunmoon.js"></script> <!-- per animazioni luna/ombre -->
+
+    <!-- Script Orbita Sole-Luna -->
+    <script src="js/sky.js"></script>
+
+    <!-- Script Dashboard -->
+    <script src="js/dashboard.js"></script>
+
+    <!-- Main Controller -->
+    <script src="js/main.js"></script>
 
 </body>
 </html>
