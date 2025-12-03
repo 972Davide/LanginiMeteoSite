@@ -1,113 +1,607 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Langini Meteo – Desktop Edition</title>
+  <meta charset="UTF-8" />
+  <title>Langini Meteo – Dashboard V8.7 CHRISTMAS SKY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
 
-    <!-- CSS PRINCIPALI -->
-    <link rel="stylesheet" href="css/layout.css">
-    <link rel="stylesheet" href="css/stars.css">
-    <link rel="stylesheet" href="css/meteors.css">
-    <link rel="stylesheet" href="css/sunmoon.css">
-    <link rel="stylesheet" href="css/password.css">
+  <style>
+    :root {
+      --card-bg: #ffffff;
+      --card-text: #000;
+      --accent: #ffb300;
+    }
 
-    <!-- SunCalc -->
-    <script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
+    * { margin:0; padding:0; box-sizing:border-box; }
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto;
+      background:#000814;
+      color:#fff;
+      height:100vh;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+    }
+
+    /* ====== OVERLAY PASSWORD ====== */
+    #lockScreen {
+      position:fixed;
+      inset:0;
+      background:radial-gradient(circle at top, #1f2937, #020617);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:999;
+    }
+
+    .lock-card {
+      background:#0b1120;
+      padding:24px 20px;
+      border-radius:18px;
+      box-shadow:0 18px 45px rgba(0,0,0,0.7);
+      max-width:320px;
+      width:90%;
+      text-align:center;
+      border:1px solid rgba(148,163,184,0.4);
+    }
+
+    .lock-title {
+      font-size:1.1rem;
+      margin-bottom:8px;
+    }
+
+    .lock-sub {
+      font-size:0.85rem;
+      color:#9ca3af;
+      margin-bottom:14px;
+    }
+
+    .lock-input {
+      width:100%;
+      padding:10px;
+      border-radius:10px;
+      border:1px solid #4b5563;
+      background:#020617;
+      color:#e5e7eb;
+      outline:none;
+      margin-bottom:10px;
+    }
+
+    .lock-btn {
+      width:100%;
+      padding:10px;
+      border-radius:10px;
+      border:none;
+      background:#f97316;
+      color:#fff;
+      font-weight:600;
+      cursor:pointer;
+      box-shadow:0 0 12px rgba(249,115,22,0.8);
+    }
+
+    .lock-btn:hover { filter:brightness(1.1); }
+
+    .lock-error {
+      margin-top:8px;
+      font-size:0.8rem;
+      color:#f97373;
+      min-height:1em;
+    }
+
+    /* ====== CIELO ====== */
+    .sky {
+      position:relative;
+      flex:1;
+      background:#1f2b3a;
+      transition:background 1.2s linear;
+      overflow:hidden;
+    }
+
+    .sky.night { background:#000814; }
+
+    /* ⭐ STELLE */
+    .stars {
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      z-index:0;
+      opacity:0;
+      transition:opacity 1s ease;
+    }
+
+    .star {
+      position:absolute;
+      width:2px;
+      height:2px;
+      background:white;
+      border-radius:50%;
+      opacity:0;
+      animation: twinkle 3s ease-in-out infinite;
+    }
+
+    @keyframes twinkle {
+      0%   { opacity:0; transform:scale(0.8); }
+      50%  { opacity:1; transform:scale(1.5); }
+      100% { opacity:0; transform:scale(0.8); }
+    }
+
+    /* ⭐ METEORE */
+    .meteor {
+      position:absolute;
+      width:140px;
+      height:3px;
+      opacity:0;
+      background:linear-gradient(90deg, rgba(255,255,255,1), transparent);
+      transform:rotate(28deg);
+      z-index:10;
+      pointer-events:none;
+    }
+
+    @keyframes meteorMove {
+      0%   { opacity:0; transform:translate(0,0) rotate(28deg); }
+      10%  { opacity:1; }
+      100% {
+        opacity:0;
+        transform:translate(var(--mx), var(--my)) rotate(28deg);
+      }
+    }
+
+    /* ====== SOLE / LUNA ====== */
+    .sunmoon {
+      position:absolute;
+      top:10%;
+      left:-80px;
+      width:80px;
+      height:80px;
+      border-radius:50%;
+      z-index:3;
+      transition:left 1.0s linear, top 1.0s linear;
+      overflow:hidden;
+    }
+
+    .sun {
+      background:radial-gradient(circle at 35% 35%, #fff8b0, #ffcc00, #ff9800);
+      box-shadow:0 0 24px 10px rgba(255,180,0,0.7);
+      animation:sunPulse 6s infinite;
+    }
+
+    @keyframes sunPulse {
+      0% {box-shadow:0 0 20px 8px rgba(255,180,0,0.5);}
+      50%{box-shadow:0 0 32px 14px rgba(255,204,0,0.9);}
+      100%{box-shadow:0 0 20px 8px rgba(255,180,0,0.5);}
+    }
+
+    .moon {
+      background:radial-gradient(circle at 40% 40%, #ffffff, #cfd8dc);
+      box-shadow:0 0 18px 8px rgba(200,200,255,0.5);
+      animation:moonGlow 7s infinite;
+      position:relative;
+    }
+
+    @keyframes moonGlow {
+      0% {box-shadow:0 0 14px 6px rgba(200,200,255,0.3);}
+      50%{box-shadow:0 0 20px 10px rgba(220,220,255,0.6);}
+      100%{box-shadow:0 0 14px 6px rgba(200,200,255,0.3);}
+    }
+
+    .moon-phase-mask {
+      position:absolute;
+      inset:0;
+      background:#000814;
+      border-radius:50%;
+      transition:transform 0.8s ease;
+    }
+
+    /* Fasi lunari 0–7 */
+    .phase-0 .moon-phase-mask { transform:scaleX(1); }
+    .phase-1 .moon-phase-mask { transform:translateX(-35%) scaleX(0.2); }
+    .phase-2 .moon-phase-mask { transform:translateX(-15%) scaleX(0.5); }
+    .phase-3 .moon-phase-mask { transform:translateX(-8%)  scaleX(0.8); }
+    .phase-4 .moon-phase-mask { transform:scaleX(0.02); }
+    .phase-5 .moon-phase-mask { transform:translateX(8%)  scaleX(0.8); }
+    .phase-6 .moon-phase-mask { transform:translateX(15%) scaleX(0.5); }
+    .phase-7 .moon-phase-mask { transform:translateX(35%) scaleX(0.2); }
+
+    /* ====== CONTENUTO ====== */
+    .content {
+      position:relative;
+      z-index:20;
+      max-width:1200px;
+      margin:0 auto;
+      padding:16px;
+      margin-top:32vh;
+    }
+
+    h1 {
+      text-align:center;
+      margin-bottom:10px;
+      font-size:1.4rem;
+    }
+
+    .sun-times {
+      text-align:center;
+      font-size:0.9rem;
+      color:#e5e7eb;
+      margin-bottom:8px;
+      opacity:0.9;
+    }
+
+    .status-bar {
+      text-align:center;
+      margin-bottom:10px;
+      font-size:0.9rem;
+    }
+
+    .cards {
+      display:grid;
+      gap:14px;
+    }
+
+    .bottom-cards {
+      grid-template-columns:repeat(4,1fr);
+    }
+
+    @media(max-width:1100px){
+      .bottom-cards { grid-template-columns:1fr 1fr; }
+    }
+    @media(max-width:700px){
+      body { overflow:auto; }
+      .content { margin-top:26vh; }
+      .bottom-cards { grid-template-columns:1fr; }
+    }
+
+    .card {
+      background:#fff;
+      color:#000;
+      border-radius:16px;
+      padding:14px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.25);
+    }
+
+    .card-header { font-weight:600; margin-bottom:4px; }
+    .value { font-size:1.6rem; font-weight:700; margin-top:6px; }
+    .value-unit { font-size:0.8rem; color:#666; }
+
+    .gauge {
+      height:12px;
+      background:#e0e0e0;
+      border-radius:12px;
+      margin-top:6px;
+      overflow:hidden;
+    }
+
+    .gauge-fill {
+      height:100%;
+      background:linear-gradient(90deg,#ffb300,#ff6d00);
+      width:0%;
+      transition:width .3s;
+      border-radius:inherit;
+    }
+  </style>
 </head>
 
 <body>
 
-    <!-- ================= SFONDO (SKY) ================= -->
-    <div id="sky"></div>
+<!-- PASSWORD -->
+<div id="lockScreen">
+  <div class="lock-card">
+    <div class="lock-title">🔐 Langini Meteo – Accesso</div>
+    <div class="lock-sub">Inserisci la password per visualizzare la dashboard.</div>
+    <input type="password" id="lockPassword" class="lock-input" placeholder="Password" />
+    <button id="lockButton" class="lock-btn">Entra</button>
+    <div id="lockError" class="lock-error"></div>
+  </div>
+</div>
 
-    <!-- STELLE -->
-    <div id="stars"></div>
+<!-- SFONDO -->
+<div class="sky" id="sky">
 
-    <!-- STELLE LAMPEGGIANTI -->
-    <div id="twinkling"></div>
+  <div class="stars" id="stars"></div>
 
-    <!-- METEORE -->
-    <div id="meteors"></div>
+  <div class="meteor" id="meteor1"></div>
+  <div class="meteor" id="meteor2"></div>
 
-    <!-- SOLE / LUNA -->
-    <div id="sunMoon"></div>
+  <!-- SOLE/LUNA -->
+  <div class="sunmoon" id="sunMoon">
+    <div class="moon-phase-mask" id="moonMask"></div>
+  </div>
 
-    <!-- ================= LOCKSCREEN PASSWORD ================= -->
-    <div id="lockScreen">
-        <div class="lockBox">
-            <h2>Inserisci Password</h2>
-            <input id="lockPassword" type="password" placeholder="Password">
-            <button id="lockButton">Entra</button>
-            <p id="lockError"></p>
-        </div>
+  <!-- CONTENUTO -->
+  <div class="content">
+    <h1>🌟 Langini Meteo – Dashboard V8.7 CHRISTMAS SKY</h1>
+
+    <div class="sun-times" id="sunTimes">Alba: --:-- • Tramonto: --:--</div>
+
+    <div class="status-bar" id="statusText">Caricamento dati…</div>
+
+    <div class="cards bottom-cards">
+
+      <div class="card">
+        <div class="card-header">Pressione</div>
+        <div class="value" id="pressureValue">--</div>
+        <div class="value-unit">hPa</div>
+        <div class="gauge"><div class="gauge-fill" id="gaugePressure"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">Temperatura</div>
+        <div class="value" id="tempValue">--</div>
+        <div class="value-unit">°C</div>
+        <div class="gauge"><div class="gauge-fill" id="gaugeTemp"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">Umidità</div>
+        <div class="value" id="humValue">--</div>
+        <div class="value-unit">%</div>
+        <div class="gauge"><div class="gauge-fill" id="gaugeHum"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">Qualità Aria</div>
+        <div class="value" id="aqValue">--</div>
+        <div class="value-unit">AQI</div>
+        <div class="gauge"><div class="gauge-fill" id="gaugeAQ"></div></div>
+      </div>
+
     </div>
 
-    <!-- ================= DASHBOARD ================= -->
-    <div id="mainContent">
+  </div>
+</div>
 
-        <h1 class="title">
-            <span class="sunIcon">☀️</span> Langini Meteo – Desktop Edition
-        </h1>
+<script>
+  const PASSWORD = "Doroty025";
+  const METEO_CHANNEL = 3149218;
 
-        <div id="sunTimes">
-            Alba: <span id="alba">--:--</span> • Tramonto: <span id="tramonto">--:--</span>
-        </div>
+  const LAT = 45.7525;
+  const LON = 8.8975;
 
-        <div id="updateTime">
-            Aggiornato: <span id="lastUpdate">--:--:--</span>
-        </div>
+  let unlocked = false;
 
-        <!-- CARDS DATI -->
-        <div class="cards">
-            <div class="card">
-                <h3>Pressione</h3>
-                <div id="pressione" class="value">--</div>
-                <div class="um">hPa</div>
-                <div class="bar"><div id="pressBar"></div></div>
-            </div>
+  function clamp(v,a,b){ return Math.min(b,Math.max(a,v)); }
+  function toNum(v){ const n=parseFloat(v); return isNaN(n)?0:n; }
 
-            <div class="card">
-                <h3>Temperatura</h3>
-                <div id="temperatura" class="value">--</div>
-                <div class="um">°C</div>
-                <div class="bar"><div id="tempBar"></div></div>
-            </div>
+  function interpolateColor(c1,c2,t){
+    const a=parseInt(c1.slice(1),16);
+    const b=parseInt(c2.slice(1),16);
+    const ar=(a>>16)&255, ag=(a>>8)&255, ab=a&255;
+    const br=(b>>16)&255, bg=(b>>8)&255, bb=b&255;
+    const r=Math.round(ar+(br-ar)*t);
+    const g=Math.round(ag+(bg-ag)*t);
+    const b2=Math.round(ab+(bb-ab)*t);
+    return `rgb(${r},${g},${b2})`;
+  }
 
-            <div class="card">
-                <h3>Umidità</h3>
-                <div id="umidita" class="value">--</div>
-                <div class="um">%</div>
-                <div class="bar"><div id="humBar"></div></div>
-            </div>
+  function moonPhaseIndex(date){
+    const lp=2551443;
+    const nm=Date.UTC(1970,0,7,20,35,0);
+    const now=date.getTime();
+    const phase=((now-nm)/1000)%lp;
+    return Math.floor((phase/lp)*8+0.5)&7;
+  }
 
-            <div class="card">
-                <h3>Qualità Aria</h3>
-                <div id="aqi" class="value">--</div>
-                <div class="um">AQI</div>
-                <div class="bar"><div id="aqiBar"></div></div>
-            </div>
-        </div>
-    </div>
+  function updateSunTimes(){
+    const now = new Date();
+    const times = SunCalc.getTimes(now, LAT, LON);
+    const f = d => d.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
+    document.getElementById("sunTimes").textContent =
+      "Alba: " + f(times.sunrise) + " • Tramonto: " + f(times.sunset);
+  }
 
-    <!-- ================= JAVASCRIPT ================= -->
+  function updateSky(){
+    if(!unlocked) return;
 
-    <!-- Moduli Effetto Cielo -->
-    <script src="js/stars.js"></script>
-    <script src="js/meteors.js"></script>
-    <script src="js/sunmoon.js"></script> <!-- per animazioni luna/ombre -->
+    const now=new Date();
+    const times=SunCalc.getTimes(now,LAT,LON);
+    const pos=SunCalc.getPosition(now,LAT,LON);
+    const alt=pos.altitude*180/Math.PI;
 
-    <!-- Script Orbita Sole-Luna -->
-    <script src="js/sky.js"></script>
+    const SKY=document.getElementById("sky");
+    const SM=document.getElementById("sunMoon");
+    const MASK=document.getElementById("moonMask");
 
-    <!-- Script Dashboard -->
-    <script src="js/dashboard.js"></script>
+    const isDay = now>=times.sunrise && now<=times.sunset;
 
-    <!-- Main Controller -->
-    <script src="js/main.js"></script>
+    if(isDay){
+      SM.className="sunmoon sun";
+      MASK.style.display="none";
+    } else {
+      SM.className="sunmoon moon";
+      MASK.style.display="block";
+      const idx = moonPhaseIndex(now);
+      for(let i=0;i<8;i++) SM.classList.remove("phase-"+i);
+      SM.classList.add("phase-"+idx);
+    }
+
+    let start,end;
+    if(isDay){
+      start=times.sunrise;
+      end=times.sunset;
+    } else {
+      const tomorrow = new Date(times.sunrise.getTime()+86400000);
+      const timesTomorrow = SunCalc.getTimes(tomorrow,LAT,LON);
+      if(now < times.sunrise){
+        const yesterday = new Date(times.sunrise.getTime()-86400000);
+        const timesYesterday = SunCalc.getTimes(yesterday,LAT,LON);
+        start = timesYesterday.sunset;
+        end   = times.sunrise;
+      } else {
+        start = times.sunset;
+        end   = timesTomorrow.sunrise;
+      }
+    }
+
+    let p = (now-start)/(end-start);
+    p = clamp(p,0,1);
+
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+
+    const orbitH = H*0.28;
+    const baseY  = H*0.75;
+
+    const x = p*(W+220)-110;
+    const y = baseY - Math.sin(p*Math.PI)*(baseY - H*0.25);
+
+    SM.style.left = x+"px";
+    SM.style.top  = y+"px";
+
+    const DAY="#1f2b3a";
+    const NIGHT="#000814";
+
+    const ALT_N=-12, ALT_D=45;
+    let blend;
+    if(alt<=ALT_N) blend=0;
+    else if(alt>=ALT_D) blend=1;
+    else blend=(alt-ALT_N)/(ALT_D-ALT_N);
+
+    SKY.style.background=interpolateColor(NIGHT,DAY,blend);
+    SKY.classList.toggle("night", !isDay);
+  }
+
+  function initStars(){
+    const container=document.getElementById("stars");
+    for(let i=0;i<90;i++){
+      const s=document.createElement("div");
+      s.className="star";
+      s.style.top=Math.random()*100+"%";
+      s.style.left=Math.random()*100+"%";
+      s.style.animationDelay=(Math.random()*3)+"s";
+      container.appendChild(s);
+    }
+  }
+
+  function isNightTime(){
+    const now = new Date();
+    const t = SunCalc.getTimes(now,LAT,LON);
+    return now<t.sunrise || now>t.sunset;
+  }
+
+  function toggleStars(){
+    document.getElementById("stars").style.opacity = (unlocked && isNightTime()) ? 1 : 0;
+  }
+
+  function triggerMeteor(id){
+    if(!unlocked || !isNightTime()) return;
+
+    const el=document.getElementById(id);
+    const startX = -150 - Math.random()*150;
+    const startY = 5 + Math.random()*40;
+    const dx = 500 + Math.random()*400;
+    const dy = 150 + Math.random()*200;
+
+    el.style.left = startX + "px";
+    el.style.top  = startY + "vh";
+
+    el.style.setProperty("--mx", dx + "px");
+    el.style.setProperty("--my", dy + "px");
+
+    el.style.animation="none";
+    void el.offsetWidth;
+    el.style.animation="meteorMove 1.4s linear forwards";
+
+    setTimeout(()=> el.style.opacity=0, 1500);
+  }
+
+  function scheduleMeteors(){
+    const delay=5000+Math.random()*7000;
+    setTimeout(()=>{
+      if(isNightTime()){
+        triggerMeteor("meteor1");
+        if(Math.random()<0.4) triggerMeteor("meteor2");
+      }
+      scheduleMeteors();
+    },delay);
+  }
+
+  async function updateDashboard(){
+    if(!unlocked) return;
+
+    try{
+      const resp = await fetch(
+        `https://api.thingspeak.com/channels/${METEO_CHANNEL}/feeds.json?results=60`
+      );
+      const meteo = await resp.json();
+      const m = meteo.feeds?.at(-1) || {};
+
+      const pressure=toNum(m.field1);
+      const temp=toNum(m.field2);
+      const hum=toNum(m.field3);
+      const aqi=toNum(m.field4);
+
+      document.getElementById("pressureValue").textContent =
+        pressure ? pressure.toFixed(0) : "--";
+      document.getElementById("tempValue").textContent =
+        temp ? temp.toFixed(1) : "--";
+      document.getElementById("humValue").textContent =
+        hum ? hum.toFixed(0) : "--";
+      document.getElementById("aqValue").textContent =
+        aqi ? aqi.toFixed(0) : "--";
+
+      document.getElementById("gaugePressure").style.width =
+        clamp((pressure-950)/100*100,0,100)+"%";
+
+      document.getElementById("gaugeTemp").style.width =
+        clamp((temp+10)/60*100,0,100)+"%";
+
+      document.getElementById("gaugeHum").style.width =
+        clamp(hum,0,100)+"%";
+
+      document.getElementById("gaugeAQ").style.width =
+        clamp(aqi/500*100,0,100)+"%";
+
+      if(m.created_at){
+        const t = new Date(m.created_at);
+        document.getElementById("statusText").textContent =
+          "Aggiornato: " + t.toLocaleTimeString("it-IT");
+      } else {
+        document.getElementById("statusText").textContent =
+          "Nessun dato recente da ThingSpeak";
+      }
+    } catch(e){
+      console.log("Errore updateDashboard:",e);
+      document.getElementById("statusText").textContent =
+        "Errore lettura dati ThingSpeak";
+    }
+  }
+
+  function tickAll(){
+    if(!unlocked) return;
+    updateSky();
+    toggleStars();
+    updateSunTimes();
+  }
+
+  function doUnlock(){
+    unlocked=true;
+    document.getElementById("lockScreen").style.display="none";
+    updateSunTimes();
+    updateSky();
+    toggleStars();
+    updateDashboard();
+  }
+
+  function handleLogin(){
+    const pwd=document.getElementById("lockPassword").value.trim();
+    if(pwd===PASSWORD){
+      doUnlock();
+    } else {
+      document.getElementById("lockError").textContent="Password errata.";
+    }
+  }
+
+  document.getElementById("lockButton").addEventListener("click", handleLogin);
+  document.getElementById("lockPassword").addEventListener("keydown", e=>{
+    if(e.key==="Enter") handleLogin();
+  });
+
+  initStars();
+  scheduleMeteors();
+  setInterval(tickAll, 15000);
+  setInterval(updateDashboard, 30000);
+</script>
 
 </body>
 </html>
