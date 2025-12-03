@@ -1,78 +1,63 @@
-/* ============================================
-   SOLE / LUNA E FASI LUNARI
-   ============================================ */
+/* =====================================================
+   SOLE & LUNA – Stile Grafico + Fasi Lunari
+   Dimensione ridotta per un look più realistico
+===================================================== */
 
-/* Contenitore che si muove lungo l'orbita */
-.sunmoon {
-  position:absolute;
-  width:90px;
-  height:90px;
-  left:-120px;       /* parte fuori dallo schermo */
-  top:120px;
-  z-index:5;
-  transition:left 1.2s linear, top 1.2s linear;
+#sunMoon {
+    position: absolute;
+    width: 55px;          /* 🔥 dimensione Sole/Luna */
+    height: 55px;
+    border-radius: 50%;
+    overflow: hidden;
+    mix-blend-mode: normal;
+    pointer-events: none;
+    z-index: 5;
+
+    /* movimento fluido */
+    transition: 
+        top 0.4s linear,
+        left 0.4s linear;
 }
 
-/* Corpo dell'astro */
-.sun,
-.moon {
-  width:100%;
-  height:100%;
-  border-radius:50%;
-  position:relative;
+/* SOLE */
+#sunMoon.sun {
+    background: radial-gradient(circle at 30% 30%, #ffe08a, #ffca36, #d38b00);
+    box-shadow: 0 0 18px 6px rgba(255, 200, 80, 0.7);
 }
 
-/* ============================================
-   SOLE
-   ============================================ */
-
-.sun {
-  background:radial-gradient(circle at 35% 35%, #fff8b0, #ffcc00, #ff9800);
-  box-shadow:0 0 40px 12px rgba(255,200,0,0.7);
-  animation:sunPulse 5s infinite;
+/* LUNA */
+#sunMoon.moon {
+    background: radial-gradient(circle at 40% 40%, #f5f5f5, #bdbdbd, #7e7e7e);
+    box-shadow: 0 0 10px 4px rgba(150, 150, 150, 0.4);
 }
 
-@keyframes sunPulse {
-  0%   { box-shadow:0 0 25px 8px rgba(255,200,0,0.4); }
-  50%  { box-shadow:0 0 40px 16px rgba(255,225,0,0.9); }
-  100% { box-shadow:0 0 25px 8px rgba(255,200,0,0.4); }
-}
-
-/* ============================================
-   LUNA
-   ============================================ */
-
-.moon {
-  background:radial-gradient(circle at 40% 40%, #ffffff, #cfd8dc);
-  box-shadow:0 0 30px 10px rgba(200,200,255,0.5);
-  animation:moonGlow 6s infinite;
-  overflow:hidden;
-}
-
-@keyframes moonGlow {
-  0%   { box-shadow:0 0 18px 6px rgba(200,200,255,0.3); }
-  50%  { box-shadow:0 0 26px 12px rgba(220,220,255,0.6); }
-  100% { box-shadow:0 0 18px 6px rgba(200,200,255,0.3); }
-}
-
-/* Maschera della fase lunare */
+/* MASCHERA PER LE FASI LUNARI */
 .moon-phase-mask {
-  position:absolute;
-  inset:0;
-  background:#000814;
-  border-radius:50%;
-  transition:transform 0.8s ease;
+    position: absolute;
+    width: 55px;          /* deve combaciare con sunMoon */
+    height: 55px;
+    border-radius: 50%;
+    background: #000;
+    top: 0;
+    left: 0;
+    mix-blend-mode: multiply;
+    opacity: 0.9;
 }
 
-/* ============================================
-   FASI LUNARI (8 fasi)
-   ============================================ */
+/* MODALITÀ NOTTE (sole invisibile, luna attiva) */
+.night #sunMoon.sun {
+    opacity: 0;
+}
 
-.moon.phase-0 .moon-phase-mask { transform:scaleX(1); }             /* Luna nuova */
-.moon.phase-1 .moon-phase-mask { transform:translateX(-35%) scaleX(0.2); }
-.moon.phase-2 .moon-phase-mask { transform:translateX(-15%) scaleX(0.5); }
-.moon.phase-3 .moon-phase-mask { transform:translateX(-8%)  scaleX(0.8); }
-.moon.phase-4 .moon-phase-mask { transform:scaleX(0.02); }          /* Luna piena */
-.moon.phase-5 .moon-phase-mask { transform:translateX(8%)  scaleX(0.8); }
-.moon.phase-6 .moon-phase-mask { transform:translateX(15%) scaleX(0.5); }
-.moon.phase-7 .moon-phase-mask { transform:translateX(35%) scaleX(0.2); }
+.night #sunMoon.moon {
+    opacity: 1;
+}
+
+/* MODALITÀ GIORNO (luna quasi invisibile) */
+.day #sunMoon.moon {
+    opacity: 0;
+}
+
+.day #sunMoon.sun {
+    opacity: 1;
+}
