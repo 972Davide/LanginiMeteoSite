@@ -65,7 +65,7 @@ body {
 }
 
 /* =====================================================
-   CIELO + STELLE + METEORE + SOLE/LUNA
+   CIELO + STELLE + SOLE/LUNA
 ===================================================== */
 #sky {
   position: fixed;
@@ -99,21 +99,11 @@ body {
   100% {opacity:0;}
 }
 
-/* Meteore */
-.meteor {
-  position:absolute;
-  width:140px;
-  height:3px;
-  background:linear-gradient(90deg,white,transparent);
-  opacity:0;
-  transform:rotate(30deg);
-}
-
 /* Sole & Luna */
 #sunMoon {
   position:absolute;
-  width:80px;
-  height:80px;
+  width:100px;
+  height:100px;
   border-radius:50%;
   pointer-events:none;
   transition:left 1s linear, top 1s linear;
@@ -121,12 +111,12 @@ body {
 
 .sun {
   background: radial-gradient(circle, #fff5aa, #ffcc33, #ff9900);
-  box-shadow: 0 0 25px 12px rgba(255,180,0,0.7);
+  box-shadow: 0 0 32px 18px rgba(255,180,0,0.65);
 }
 
 .moon {
   background: radial-gradient(circle, #ffffff, #bfc4ce);
-  box-shadow: 0 0 18px 8px rgba(180,180,255,0.4);
+  box-shadow: 0 0 28px 14px rgba(180,180,255,0.35);
 }
 
 /* =====================================================
@@ -134,11 +124,11 @@ body {
 ===================================================== */
 .content {
   max-width: 1100px;
-  margin-top: 1vh;   /* TITOLO PIÙ IN ALTO */
+  margin-top: 1vh;
   padding: 20px;
   text-align: center;
-   margin-left: auto;
-   margin-right: auto;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 h1.title {
@@ -171,14 +161,13 @@ h1.title {
    CARD METEO
 ===================================================== */
 .cards {
-  margin-top: 57vh;   /* SPAZIO GRANDE PER IL SOLE */
+  margin-top: 57vh;
   display:grid;
   grid-template-columns:repeat(4,1fr);
   gap:18px;
-
-   max-width:1100px;
-   margin-left: auto;
-   margin-right: auto;
+  max-width:1100px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .card {
@@ -215,7 +204,7 @@ h1.title {
 
 <body>
 
-<!-- ============================ PASSWORD ============================ -->
+<!-- PASSWORD -->
 <div id="lockScreen">
   <div class="lockBox">
     <h2>Accesso</h2>
@@ -225,15 +214,13 @@ h1.title {
   </div>
 </div>
 
-<!-- ============================ SFONDO ============================ -->
+<!-- SFONDO -->
 <div id="sky">
   <div id="stars"></div>
-  <div id="meteor1" class="meteor"></div>
-  <div id="meteor2" class="meteor"></div>
   <div id="sunMoon"></div>
 </div>
 
-<!-- ============================ CONTENUTO ============================ -->
+<!-- CONTENUTO -->
 <div class="content">
 
   <h1 class="title">🌟 Langini Meteo – Dashboard</h1>
@@ -270,10 +257,9 @@ h1.title {
     </div>
 
   </div>
-
 </div>
 
-<!-- ============================ JAVASCRIPT ============================ -->
+<!-- SCRIPT ================================================================= -->
 
 <script>
 let unlocked = false;
@@ -284,347 +270,116 @@ function unlock() {
   if (pw === PASSWORD) {
     unlocked = true;
     document.getElementById("lockScreen").style.display = "none";
-    document.getElementById("stars").style.opacity = 1;
+    toggleStars();
   } else {
     document.getElementById("err").textContent = "Password errata.";
   }
 }
 
-/* Generatore stelle */
+/* ============================================================
+   STELLE
+============================================================ */
 function initStars() {
-  const c = document.getElementById("stars");
+  const container = document.getElementById("stars");
   for (let i = 0; i < 90; i++) {
     const s = document.createElement("div");
     s.className = "star";
     s.style.top = Math.random() * 100 + "%";
     s.style.left = Math.random() * 100 + "%";
     s.style.animationDelay = Math.random() * 3 + "s";
-    c.appendChild(s);
+    container.appendChild(s);
   }
 }
 initStars();
 
-/* Meteore */
-function triggerMeteor(id) {
-  if (!unlocked) return;
-
-  const el = document.getElementById(id);
-  const startX = -150 - Math.random() * 200;
-  const startY = Math.random() * 40 + 5;
-  const dx = 600 + Math.random() * 400;
-  const dy = 200 + Math.random() * 200;
-
-  el.style.left = startX + "px";
-  el.style.top = startY + "vh";
-
-  el.style.setProperty("--mx", dx + "px");
-  el.style.setProperty("--my", dy + "px");
-
-  el.style.animation = "none";
-  void el.offsetWidth;
-  el.style.animation = "meteorMove 1.4s linear";
-
-  setTimeout(() => el.style.opacity = 0, 1500);
+function toggleStars() {
+    const stars = document.getElementById("stars");
+    stars.style.opacity = isNightTime() ? 1 : 0;
 }
 
-function scheduleMeteors() {
-  setTimeout(() => {
-    if (unlocked) {
-      triggerMeteor("meteor1");
-      if (Math.random() < 0.4) triggerMeteor("meteor2");
-    }
-    scheduleMeteors();
-  }, 4000 + Math.random() * 5000);
-}
-scheduleMeteors();
-
-/* Orbita Sole/Luna */
-function updateSky() {
-  if (!unlocked) return;
-
-  const now = new Date();
-  const times = SunCalc.getTimes(now, 45.7525, 8.8975);
-  const pos = SunCalc.getPosition(now, 45.7525, 8.8975);
-  const alt = pos.altitude * 180 / Math.PI;
-
-  const SM = document.getElementById("sunMoon");
-  const isDay = now >= times.sunrise && now <= times.sunset;
-  SM.className = isDay ? "sun" : "moon";
-
-  const W = window.innerWidth;
-  const H = window.innerHeight;
-
-  const titoloY = H * 0.08;
-  const pulsanteY = H * 0.16;
-  const cardsY = H * 0.63;
-
-  const topOrbit = (titoloY + pulsanteY) / 2;
-  const bottomOrbit = (pulsanteY + cardsY) / 2;
-
-  const start = isDay ? times.sunrise : times.sunset;
-  const end = isDay ? times.sunset : new Date(times.sunrise.getTime() + 86400000);
-
-  let p = (now - start) / (end - start);
-  p = Math.min(1, Math.max(0, p));
-
-  const y = bottomOrbit - Math.sin(p * Math.PI) * (bottomOrbit - topOrbit);
-  const x = p * (W + 200) - 100;
-
-  SM.style.left = x + "px";
-  SM.style.top = y + "px";
-
-  const NIGHT = "#000814", DAY = "#1f2b3a";
-  let blend = (alt + 12) / (45 + 12);
-  blend = Math.min(1, Math.max(0, blend));
-  document.getElementById("sky").style.background =
-      interpolate(NIGHT, DAY, blend);
-}
-
-function interpolate(c1, c2, t) {
-  const a = parseInt(c1.slice(1), 16);
-  const b = parseInt(c2.slice(1), 16);
-  const r = ((a >> 16) & 255) + (((b >> 16) & 255) - ((a >> 16) & 255)) * t;
-  const g = ((a >> 8) & 255) + (((b >> 8) & 255) - ((a >> 8) & 255)) * t;
-  const bl = (a & 255) + ((b & 255) - (a & 255)) * t;
-  return `rgb(${r},${g},${bl})`;
-}
-
-/* Alba / Tramonto */
-function updateSunTimes() {
-  const now = new Date();
-  const t = SunCalc.getTimes(now, 45.7525, 8.8975);
-
-  const fmt = d => d.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
-  document.getElementById("sunTimes").textContent =
-    "Alba: " + fmt(t.sunrise) + " • Tramonto: " + fmt(t.sunset);
-}
-
-/* Lettura dati */
-async function updateDashboard() {
-  if (!unlocked) return;
-
-  try {
-    const res = await fetch(
-      "https://api.thingspeak.com/channels/3149218/feeds.json?results=1"
-    );
-    const data = await res.json();
-    const m = data.feeds[0];
-
-    const pressure = parseFloat(m.field1);
-    const temp = parseFloat(m.field2);
-    const hum = parseFloat(m.field3);
-    const aqi = parseFloat(m.field4);
-
-    document.getElementById("pressureValue").textContent =
-      pressure ? pressure.toFixed(0) : "--";
-    document.getElementById("tempValue").textContent =
-      temp ? temp.toFixed(1) : "--";
-    document.getElementById("humValue").textContent =
-      hum ? hum.toFixed(0) : "--";
-    document.getElementById("aqValue").textContent =
-      aqi ? aqi.toFixed(0) : "--";
-
-    document.getElementById("gaugePressure").style.width =
-      Math.min(100, Math.max(0, pressure - 950)) + "%";
-
-    document.getElementById("gaugeTemp").style.width =
-      Math.min(100, Math.max(0, (temp + 10) * 2)) + "%";
-
-    document.getElementById("gaugeHum").style.width =
-      Math.min(100, Math.max(0, hum)) + "%";
-
-    document.getElementById("gaugeAQ").style.width =
-      Math.min(100, Math.max(0, (aqi / 500) * 100)) + "%";
-
-  } catch (e) {
-    console.log("Errore lettura dati", e);
-  }
-}
-
-/* LOOP PRINCIPALE */
-setInterval(() => {
-  if (unlocked) {
-    updateSky();
-    updateSunTimes();
-    updateDashboard();
-  }
-}, 8000);
-
-</script>
-<script>
-/* ============================================
-   OVERRIDE updateSky() – Versione centrata 1920x1080
-   ============================================ */
-
-function updateSky() {
-    if (!unlocked) return;
-
-    const now = new Date();
-    const nowL = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-
-    const LAT = 45.7525;
-    const LON = 8.8975;
-
-    const times = SunCalc.getTimes(nowL, LAT, LON);
-    const pos = SunCalc.getPosition(nowL, LAT, LON);
-    const alt = pos.altitude * 180 / Math.PI;
-
-    const SKY = document.getElementById("sky");
-    const SM  = document.getElementById("sunMoon");
-    if (!SKY || !SM) return;
-
-    /* --- È giorno? --- */
-    const isDay = nowL >= times.sunrise && nowL <= times.sunset;
-
-    /* --- Curva dell’orbita COORDINATA al layout 1920×1080 --- */
-    const start = isDay ? times.sunrise : times.sunset;
-    const end   = isDay ? times.sunset : new Date(times.sunrise.getTime() + 86400000);
-
-    let p = (nowL - start) / (end - start);
-    p = Math.min(1, Math.max(0, p));
-
-    const W = window.innerWidth;
-    const H = window.innerHeight;
-
-    const centerY = H * 0.38;   /* altezza della curva */
-    const radiusY = H * 0.28;   /* ampiezza curva */
-
-    const y = centerY - Math.sin(p * Math.PI) * radiusY;
-
-    /* Movimento orizzontale */
-    SM.style.left = `${p * (W + 200) - 100}px`;
-    SM.style.top  = `${y}px`;
-
-    /* Sole o Luna */
-    SM.className = isDay ? "sun" : "moon";
-
-    /* --- Colore cielo --- */
-    const NIGHT = "#000814";
-    const DAY   = "#1f2b3a";
-
-    const ALT_N = -12;
-    const ALT_D = 45;
-
-    let blend = (alt - ALT_N) / (ALT_D - ALT_N);
-    blend = Math.min(1, Math.max(0, blend));
-
-    SKY.style.background = `linear-gradient(${DAY}, ${NIGHT})`;
-}
-</script>
-<script>
-<script>
-/* ============================================================
-   CONFIGURAZIONE POSIZIONE (Venegono Superiore)
-============================================================ */
-const LAT = 45.7525;
-const LON = 8.8975;
-
-/* ============================================================
-   FUNZIONE: controllo notte/giorno con ORA LOCALE CORRETTA
-============================================================ */
 function isNightTime() {
-    const now = new Date(); // ORA LOCALE REALE
-    const t = SunCalc.getTimes(now, LAT, LON);
+    const now = new Date();
+    const t = SunCalc.getTimes(now, 45.7525, 8.8975);
     return now < t.sunrise || now > t.sunset;
 }
 
 /* ============================================================
-   MOSTRA / NASCONDE LE STELLE CORRETTAMENTE
-============================================================ */
-function toggleStars() {
-    const stars = document.getElementById("stars");
-    if (!stars) return;
-    stars.style.opacity = isNightTime() ? 1 : 0;
-}
-
-/* ============================================================
-   FUNZIONE PRINCIPALE: ORBITA SOLE/LUNA REALISTICA
+   ORBITA SOLE/LUNA – CURVA C (ALTA)
 ============================================================ */
 function updateSky() {
     if (!unlocked) return;
 
-    /* ORA LOCALE REALE */
     const now = new Date();
+    const LAT = 45.7525, LON = 8.8975;
     const times = SunCalc.getTimes(now, LAT, LON);
 
-    /* =====================================================
-       CALCOLO PROGRESSIONE GIORNO/NOTTE
-       p = 0 → inizio orbita
-       p = 1 → fine orbita
-    ===================================================== */
     let p = 0;
-    let isDay = now >= times.sunrise && now <= times.sunset;
+    const isDay = now >= times.sunrise && now <= times.sunset;
 
     if (isDay) {
-        // SOLE → da alba a tramonto
         p = (now - times.sunrise) / (times.sunset - times.sunrise);
     } else {
-        // LUNA → da tramonto ad alba successiva
         let nextSunrise = new Date(times.sunrise);
         if (now > times.sunset) nextSunrise.setDate(nextSunrise.getDate() + 1);
         p = (now - times.sunset) / (nextSunrise - times.sunset);
     }
 
-    /* Sicurezza */
-    p = Math.min(1, Math.max(0, p));
+    p = Math.max(0, Math.min(1, p));
 
-    /* =====================================================
-       ORBITA PERFETTA PER 1920×1080
-    ===================================================== */
     const W = window.innerWidth;
     const H = window.innerHeight;
 
-    const centerY = H * 0.38;   // centro curva
-    const radiusY = H * 0.28;   // ampiezza curva
+    const centerY = H * 0.32;   /* più alta */
+    const radiusY = H * 0.36;   /* curva più grande */
 
-    const x = p * (W + 200) - 100;              // SEMPRE sinistra → destra
+    const x = p * (W + 200) - 100;
     const y = centerY - Math.sin(p * Math.PI) * radiusY;
 
     const SM = document.getElementById("sunMoon");
     SM.style.left = `${x}px`;
     SM.style.top  = `${y}px`;
-
-    /* =====================================================
-       COMMUTAZIONE SOLE / LUNA
-    ===================================================== */
     SM.className = isDay ? "sun" : "moon";
 
-    /* =====================================================
-       COLORE DEL CIELO REALISTICO
-    ===================================================== */
-    const pos = SunCalc.getPosition(now, LAT, LON);
-    const alt = pos.altitude * 180 / Math.PI;
-
-    const NIGHT = "#000814";
-    const DAY   = "#1f2b3a";
-
-    const ALT_N = -12; // notte
-    const ALT_D =  35; // pieno giorno
-
-    let blend = (alt - ALT_N) / (ALT_D - ALT_N);
-    blend = Math.min(1, Math.max(0, blend));
-
-    SKY.style.background = `linear-gradient(
-        to bottom,
-        ${DAY} ${blend * 100}%,
-        ${NIGHT} 100%
-    )`;
+    toggleStars();
 }
 
 /* ============================================================
-   AGGIORNA ALBA/TRAMONTO
+   INFO SOLE (ALBA/TRAMONTO)
 ============================================================ */
 function updateSunTimes() {
     const now = new Date();
-    const t = SunCalc.getTimes(now, LAT, LON);
-
-    const fmt = d => d.toLocaleTimeString("it-IT", {
-        hour: "2-digit",
-        minute: "2-digit"
-    });
-
+    const t = SunCalc.getTimes(now, 45.7525, 8.8975);
+    const fmt = d => d.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
     document.getElementById("sunTimes").textContent =
         `Alba: ${fmt(t.sunrise)} • Tramonto: ${fmt(t.sunset)}`;
+}
+
+/* ============================================================
+   DASHBOARD (DATI)
+============================================================ */
+async function updateDashboard() {
+    if (!unlocked) return;
+    try {
+        const r = await fetch("https://api.thingspeak.com/channels/3149218/feeds.json?results=1");
+        const d = await r.json();
+        const m = d.feeds[0];
+
+        const P = parseFloat(m.field1);
+        const T = parseFloat(m.field2);
+        const H = parseFloat(m.field3);
+        const A = parseFloat(m.field4);
+
+        pressureValue.textContent = P ? P.toFixed(0) : "--";
+        tempValue.textContent     = T ? T.toFixed(1) : "--";
+        humValue.textContent      = H ? H.toFixed(0) : "--";
+        aqValue.textContent       = A ? A.toFixed(0) : "--";
+
+        gaugePressure.style.width = Math.min(100, Math.max(0, P - 950)) + "%";
+        gaugeTemp.style.width     = Math.min(100, Math.max(0, (T + 10) * 2)) + "%";
+        gaugeHum.style.width      = Math.min(100, Math.max(0, H)) + "%";
+        gaugeAQ.style.width       = Math.min(100, Math.max(0, (A / 500) * 100)) + "%";
+
+    } catch(e){}
 }
 
 /* ============================================================
@@ -633,98 +388,10 @@ function updateSunTimes() {
 setInterval(() => {
     if (!unlocked) return;
     updateSky();
-    toggleStars();
     updateSunTimes();
     updateDashboard();
-}, 3000); // aggiornamento fluido ogni 3 secondi
+}, 3000);
 
-</script>
-
-<script>
-/* ============================================================
-   ORBITA SOLE/LUNA REALISTICA — SEMPRE DA SINISTRA A DESTRA
-   ============================================================ */
-
-function updateSky() {
-    if (!unlocked) return;
-
-  // ORA LOCALE ESATTA
-const nowL = new Date();
-
-// SunCalc vuole un oggetto Date con fuso locale → ora funziona bene
-const times = SunCalc.getTimes(nowL, LAT, LON);
-const pos   = SunCalc.getPosition(nowL, LAT, LON);
-
-
-    const LAT = 45.7525;
-    const LON = 8.8975;
-
-    const times = SunCalc.getTimes(nowL, LAT, LON);
-    const pos = SunCalc.getPosition(nowL, LAT, LON);
-    const alt = pos.altitude * 180 / Math.PI;
-
-    const SKY = document.getElementById("sky");
-    const SM  = document.getElementById("sunMoon");
-
-    if (!SKY || !SM) return;
-
-    /* ============================================================
-       CALCOLO p (progressione oraria 0→1) PER LUNA E SOLE
-       ============================================================ */
-
-    let p = 0;
-    let isDay = nowL >= times.sunrise && nowL <= times.sunset;
-
-    if (isDay) {
-        // SOLE → ALBA→TRAMONTO
-        p = (nowL - times.sunrise) / (times.sunset - times.sunrise);
-    } else {
-        // LUNA → TRAMONTO→ALBA SUCCESSIVA
-        let nextSunrise = new Date(times.sunrise);
-        if (nowL > times.sunset) {
-            nextSunrise.setDate(nextSunrise.getDate() + 1);
-        }
-        p = (nowL - times.sunset) / (nextSunrise - times.sunset);
-    }
-
-    // clamp sicurezza
-    p = Math.max(0, Math.min(1, p));
-
-    /* ============================================================
-       ORBITA PERFETTA PER 1920×1080
-       ============================================================ */
-
-    const W = window.innerWidth;
-    const H = window.innerHeight;
-
-    const centerY = H * 0.38;
-    const radiusY = H * 0.28;
-
-    const x = p * (W + 200) - 100;
-    const y = centerY - Math.sin(p * Math.PI) * radiusY;
-
-    SM.style.left = `${x}px`;
-    SM.style.top  = `${y}px`;
-
-    /* ============================================================
-       COMMUTAZIONE SOLE/LUNA
-       ============================================================ */
-    SM.className = isDay ? "sun" : "moon";
-
-    /* ============================================================
-       COLORE CIELO
-       ============================================================ */
-    const NIGHT = "#000814";
-    const DAY   = "#1f2b3a";
-
-    const ALT_N = -8;
-    const ALT_D = 35;
-
-    let blend = (alt - ALT_N) / (ALT_D - ALT_N);
-    blend = Math.max(0, Math.min(1, blend));
-
-    SKY.style.background = `linear-gradient(${DAY}, ${NIGHT})`;
-}
 </script>
 
 </body>
