@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
 
-  <style>
+ <style>
     :root {
       --card-bg: #ffffff;
       --card-text: #000;
@@ -194,7 +194,7 @@
       transition:transform 0.8s ease;
     }
 
-    /* Fasi lunari 0–7 */
+    /* Fasi lunari */
     .phase-0 .moon-phase-mask { transform:scaleX(1); }
     .phase-1 .moon-phase-mask { transform:translateX(-35%) scaleX(0.2); }
     .phase-2 .moon-phase-mask { transform:translateX(-15%) scaleX(0.5); }
@@ -211,7 +211,9 @@
       max-width:1200px;
       margin:0 auto;
       padding:16px;
-      margin-top:32vh;
+
+      /* 🔼 TITOLO PIÙ IN ALTO */
+      margin-top:20vh;
     }
 
     h1 {
@@ -220,11 +222,13 @@
       font-size:1.4rem;
     }
 
+    /* 🔽 ALBA/TRAMONTO PIÙ IN BASSO */
     .sun-times {
       text-align:center;
       font-size:0.9rem;
       color:#e5e7eb;
-      margin-bottom:8px;
+      margin-top:20px;
+      margin-bottom:20px;
       opacity:0.9;
     }
 
@@ -239,8 +243,10 @@
       gap:14px;
     }
 
+    /* 🔽 RIQUADRI PIÙ IN BASSO */
     .bottom-cards {
       grid-template-columns:repeat(4,1fr);
+      margin-top:25px;
     }
 
     @media(max-width:1100px){
@@ -280,6 +286,7 @@
       border-radius:inherit;
     }
   </style>
+
 </head>
 
 <body>
