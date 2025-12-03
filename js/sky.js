@@ -1,5 +1,5 @@
 /* ====================================================
-   SKY.JS – CIELO DINAMICO + SOLE/LUNA IN ORBITA
+   SKY.JS – CIELO DINAMICO + SOLE/LUNA IN ORBITA (FIX)
    ==================================================== */
 
 const LAT = 45.7525;
@@ -37,22 +37,23 @@ function interpolateColor(c1, c2, t) {
 }
 
 /* ----------------------------------------------------
-   Controllo se è notte
+   Verifica se è notte
 ---------------------------------------------------- */
 function isNightTime() {
-    const now = localDate(new Date());
-    const t = SunCalc.getTimes(now, LAT, LON);
-    return now < t.sunrise || now > t.sunset;
+    const nowL = localDate(new Date());
+    const t = SunCalc.getTimes(nowL, LAT, LON);
+    return nowL < t.sunrise || nowL > t.sunset;
 }
 
 /* ----------------------------------------------------
-   AGGIORNA CIELO + ORBITA ASTRO (SOLE/LUNA)
+   AGGIORNA CIELO + ORBITA SOLE/LUNA
 ---------------------------------------------------- */
 function updateSky() {
     if (!unlocked) return;
 
     const now = new Date();
     const nowL = localDate(now);
+
     const times = SunCalc.getTimes(nowL, LAT, LON);
     const pos = SunCalc.getPosition(nowL, LAT, LON);
     const alt = pos.altitude * 180 / Math.PI;
@@ -62,33 +63,35 @@ function updateSky() {
 
     if (!SKY || !SM) return;
 
-    /* --- Determina se è giorno --- */
+    /* ----- Giorno o notte ----- */
     const isDay = nowL >= times.sunrise && nowL <= times.sunset;
 
-    /* --- ORBITA ASTRO --- */
+    /* ----- Calcolo orbita ----- */
     const start = isDay ? times.sunrise : times.sunset;
     const end   = isDay ? times.sunset  : new Date(times.sunrise.getTime() + 86400000);
 
     let p = (nowL - start) / (end - start);
     p = clamp(p, 0, 1);
 
+    /* ----- Posizione su schermo ----- */
     const screenW = window.innerWidth;
     const screenH = window.innerHeight;
 
-    const orbitHeight = screenH * 0.30; // altezza orbita
+    const orbitHeight = screenH * 0.30;
     const baseY = screenH * 0.35;
 
     const y = baseY - Math.sin(p * Math.PI) * orbitHeight;
+    const x = p * (screenW + 200) - 100;
 
-    SM.style.left = `${p * (screenW + 200) - 100}px`;
+    SM.style.left = `${x}px`;
     SM.style.top  = `${y}px`;
 
-    /* --- SOLE o LUNA --- */
+    /* ----- Seleziona Sole o Luna ----- */
     SM.className = isDay ? "sun" : "moon";
 
-    /* --- COLORE CIELO --- */
+    /* ----- Colore cielo ----- */
     const NIGHT = "#000814";
-    const DAY   = "#1f2b3a";
+    const DAY = "#1f2b3a";
 
     const ALT_N = -12;
     const ALT_D = 45;
@@ -101,4 +104,28 @@ function updateSky() {
     SKY.style.background = interpolateColor(NIGHT, DAY, blend);
 
     SKY.classList.toggle("night", !isDay);
+}
+
+/* ----------------------------------------------------
+   AGGIORNA ALBA / TRAMONTO (PER DASHBOARD)
+---------------------------------------------------- */
+function updateSunTimes() {
+    const now = new Date();
+    const nowL = localDate(now);
+
+    const t = SunCalc.getTimes(nowL, LAT, LON);
+
+    const albaEl = document.getElementById("sunriseTime");
+    const tramontoEl = document.getElementById("sunsetTime");
+
+    if (!albaEl || !tramontoEl) return;
+
+    const fmt = d =>
+        d.toLocaleTimeString("it-IT", {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+
+    albaEl.textContent = fmt(t.sunrise);
+    tramontoEl.textContent = fmt(t.sunset);
 }
