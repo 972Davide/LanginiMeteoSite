@@ -596,6 +596,87 @@ function updateSky() {
     SKY.style.background = `linear-gradient(${DAY}, ${NIGHT})`;
 }
 </script>
+<script>
+/* ============================================================
+   ORBITA SOLE/LUNA REALISTICA — SEMPRE DA SINISTRA A DESTRA
+   ============================================================ */
+
+function updateSky() {
+    if (!unlocked) return;
+
+    const now = new Date();
+    const nowL = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+
+    const LAT = 45.7525;
+    const LON = 8.8975;
+
+    const times = SunCalc.getTimes(nowL, LAT, LON);
+    const pos = SunCalc.getPosition(nowL, LAT, LON);
+    const alt = pos.altitude * 180 / Math.PI;
+
+    const SKY = document.getElementById("sky");
+    const SM  = document.getElementById("sunMoon");
+
+    if (!SKY || !SM) return;
+
+    /* ============================================================
+       CALCOLO p (progressione oraria 0→1) PER LUNA E SOLE
+       ============================================================ */
+
+    let p = 0;
+    let isDay = nowL >= times.sunrise && nowL <= times.sunset;
+
+    if (isDay) {
+        // SOLE → ALBA→TRAMONTO
+        p = (nowL - times.sunrise) / (times.sunset - times.sunrise);
+    } else {
+        // LUNA → TRAMONTO→ALBA SUCCESSIVA
+        let nextSunrise = new Date(times.sunrise);
+        if (nowL > times.sunset) {
+            nextSunrise.setDate(nextSunrise.getDate() + 1);
+        }
+        p = (nowL - times.sunset) / (nextSunrise - times.sunset);
+    }
+
+    // clamp sicurezza
+    p = Math.max(0, Math.min(1, p));
+
+    /* ============================================================
+       ORBITA PERFETTA PER 1920×1080
+       ============================================================ */
+
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+
+    const centerY = H * 0.38;
+    const radiusY = H * 0.28;
+
+    const x = p * (W + 200) - 100;
+    const y = centerY - Math.sin(p * Math.PI) * radiusY;
+
+    SM.style.left = `${x}px`;
+    SM.style.top  = `${y}px`;
+
+    /* ============================================================
+       COMMUTAZIONE SOLE/LUNA
+       ============================================================ */
+    SM.className = isDay ? "sun" : "moon";
+
+    /* ============================================================
+       COLORE CIELO
+       ============================================================ */
+    const NIGHT = "#000814";
+    const DAY   = "#1f2b3a";
+
+    const ALT_N = -8;
+    const ALT_D = 35;
+
+    let blend = (alt - ALT_N) / (ALT_D - ALT_N);
+    blend = Math.max(0, Math.min(1, blend));
+
+    SKY.style.background = `linear-gradient(${DAY}, ${NIGHT})`;
+}
+</script>
 
 </body>
 </html>
