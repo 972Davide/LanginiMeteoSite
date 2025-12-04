@@ -467,27 +467,25 @@
   </div>
 
   <!-- CONTENUTO -->
-  <div class="content">
-    <h1>🌟 Langini Meteo – Dashboard V8.8 CHRISTMAS SKY</h1>
-    <div class="sun-times" id="sunTimes">Alba: --:-- • Tramonto: --:--</div>
+ <div class="content">
+  <h1>🌟 Langini Meteo – Dashboard V8.8 CHRISTMAS SKY</h1>
+  <div class="sun-times" id="sunTimes">Alba: --:-- • Tramonto: --:--</div>
 
-    <!-- Il pulsante ora scorre alla sezione vento/pioggia -->
-    <a href="#windSection" class="btn-realtime">🌬️ Dati Vento / Pioggia</a>
+  <div class="status-bar" id="statusText">Caricamento dati…</div>
 
-    <div class="status-bar" id="statusText">Caricamento dati…</div>
-
-    <!-- VENTO / PIOGGIA DA THINGSPEAK -->
-    <div class="cards top-cards" id="windSection">
-      <div class="card">
-        <div class="card-header">🌬️ Vento attuale</div>
-        <div class="wind-value" id="windNow">--</div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">🌧️ Stato Pioggia</div>
-        <div class="rainstate-value" id="rainState">--</div>
-      </div>
+  <!-- VENTO / PIOGGIA DA THINGSPEAK -->
+  <div class="cards top-cards" id="windSection">
+    <div class="card">
+      <div class="card-header">🌬️ Vento attuale</div>
+      <div class="wind-value" id="windNow">--</div>
     </div>
+
+    <div class="card">
+      <div class="card-header">🌧️ Stato Pioggia</div>
+      <div class="rainstate-value" id="rainState">--</div>
+    </div>
+  </div>
+
 
     <!-- METEO BASE (da canale meteo) -->
     <div class="cards bottom-cards">
