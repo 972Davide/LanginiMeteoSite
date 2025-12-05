@@ -1,390 +1,551 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Langini Meteo – Dashboard V8.9</title>
-<script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
+  <meta charset="UTF-8" />
+  <title>Langini Meteo – Dashboard V8.9.1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
 
-<style>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
 
-/* ======================================
-   STILI GENERALI
-====================================== */
-body {
-  margin: 0;
-  background: #000814;
-  font-family: system-ui, Arial;
-  color: #fff;
-  overflow-x: hidden;
-}
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto;
+      background:#000814;
+      color:#fff;
+      overflow-x:hidden;
+    }
 
-/* ======================================
-   CIELO (più grande)
-====================================== */
-.sky {
-  position:relative;
-  background:#001026;
-  height:44vh;       /* aumentato */
-  overflow:hidden;
-  transition: background 1.2s linear;
-}
+    /* ======================================
+       CIELO (più grande)
+    ====================================== */
+    .sky {
+      position:relative;
+      background:#001025;
+      height:44vh;         /* più cielo */
+      overflow:hidden;
+      transition:background 1s linear;
+    }
 
-@media(max-width:600px){
-  .sky { height:40vh; }
-}
+    @media(max-width:600px){
+      .sky { height:42vh; }
+    }
 
-/* Sole/Luna */
-.sunmoon {
-  position:absolute;
-  top:14%;
-  left:-120px;
-  width:110px;
-  height:110px;
-  border-radius:50%;
-  z-index:5;
-  transition: left 1.2s linear, top 1.2s linear;
-}
+    /* Sole / Luna */
+    .sunmoon {
+      position:absolute;
+      top:10%;
+      left:-100px;
+      width:90px;
+      height:90px;
+      border-radius:50%;
+      z-index:5;
+      transition:left 1.2s linear, top 1.2s linear;
+      overflow:hidden;
+    }
 
-.sun {
-  background: radial-gradient(circle, #fff7b0, #ffcc00, #ff9800);
-  box-shadow:0 0 35px #ffb300;
-}
+    .sunmoon.sun {
+      background:radial-gradient(circle at 35% 35%, #fff8b0, #ffcc00, #ff9800);
+      box-shadow:0 0 32px 10px rgba(255,200,0,0.9);
+    }
 
-.moon {
-  background: radial-gradient(circle, #ffffff, #d0d3d7);
-  box-shadow:0 0 22px #cad7ff;
-}
+    .sunmoon.moon {
+      background:radial-gradient(circle at 40% 40%, #ffffff, #cfd8dc);
+      box-shadow:0 0 22px 8px rgba(210,220,255,0.9);
+    }
 
-/* Maschera fasi lunari */
-.moon-phase-mask {
-  position:absolute;
-  inset:0;
-  border-radius:50%;
-  background:#001026;
-}
+    .moon-phase-mask {
+      position:absolute;
+      inset:0;
+      background:#001025;
+      border-radius:50%;
+      transition:transform 0.8s ease;
+    }
 
-/* ======================================
-   STELLA CADENTE
-====================================== */
-.shooting-star {
-  position:absolute;
-  width:3px;
-  height:3px;
-  background:white;
-  border-radius:50%;
-  opacity:0;
-  animation: meteor 4s linear infinite;
-}
+    .sunmoon.sun .moon-phase-mask {
+      display:none;
+    }
 
-@keyframes meteor {
-  0%   { opacity:0; transform: translate(-300px,-300px); }
-  10%  { opacity:1; }
-  100% { opacity:0; transform: translate(600px,300px); }
-}
+    .sunmoon.moon .moon-phase-mask {
+      display:block;
+    }
 
-/* ======================================
-   CONTENUTO DASHBOARD
-====================================== */
-.content {
-  position:relative;
-  z-index:20;
-  max-width:1200px;
-  margin:0 auto;
-  padding:16px;
-  margin-top:-2vh;      /* per far vedere molto cielo ma card subito visibili */
-  text-align:center;
-}
+    .sunmoon.phase-0 .moon-phase-mask { transform:scaleX(1); }
+    .sunmoon.phase-1 .moon-phase-mask { transform:translateX(-35%) scaleX(0.2); }
+    .sunmoon.phase-2 .moon-phase-mask { transform:translateX(-18%) scaleX(0.5); }
+    .sunmoon.phase-3 .moon-phase-mask { transform:translateX(-8%)  scaleX(0.8); }
+    .sunmoon.phase-4 .moon-phase-mask { transform:scaleX(0.02); }
+    .sunmoon.phase-5 .moon-phase-mask { transform:translateX(8%)  scaleX(0.8); }
+    .sunmoon.phase-6 .moon-phase-mask { transform:translateX(18%) scaleX(0.5); }
+    .sunmoon.phase-7 .moon-phase-mask { transform:translateX(35%) scaleX(0.2); }
 
-h1 {
-  margin-top:10px;
-  font-size:1.6rem;
-  text-shadow:0 0 15px #008cff;
-}
+    /* COMETA (1–25 dicembre) */
+    .comet {
+      position:absolute;
+      top:14vh;
+      left:-200px;
+      width:70px;
+      height:70px;
+      z-index:4;
+      opacity:0;
+      transition:left 2s linear, top 1.5s linear, opacity 1s ease, transform 0.8s ease;
+      background:radial-gradient(circle, #ffffff, #ffe9a3, #ffcc00);
+      box-shadow:0 0 24px 10px rgba(255,230,150,0.9);
+      clip-path:polygon(
+        50% 0%,
+        62% 35%,
+        98% 35%,
+        69% 55%,
+        80% 95%,
+        50% 72%,
+        20% 95%,
+        31% 55%,
+        2% 35%,
+        38% 35%
+      );
+    }
 
-.sun-times {
-  margin-top:4px;
-  opacity:0.9;
-}
+    .comet.big {
+      transform:scale(1.7);
+      box-shadow:0 0 40px 20px rgba(255,245,200,1);
+    }
 
-/* STATO */
-.status-bar {
-  margin-top:8px;
-  opacity:0.8;
-}
+    .comet-tail {
+      position:absolute;
+      right:100%;
+      top:50%;
+      transform:translateY(-50%);
+      width:220px;
+      height:40px;
+      background:linear-gradient(90deg, rgba(255,255,200,0.7), rgba(255,255,200,0));
+      filter:blur(8px);
+      border-radius:40px;
+    }
 
-/* ======================================
-   CARD GENERALI
-====================================== */
-.cards {
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-  gap:18px;
-}
+    /* UNA STELLA CADENTE OGNI TANTO (semplice) */
+    .shooting-star {
+      position:absolute;
+      width:2px;
+      height:2px;
+      background:white;
+      border-radius:50%;
+      opacity:0;
+      box-shadow:0 0 8px #fff;
+    }
 
-.card {
-  background: rgba(20,20,35,0.75);
-  padding:22px;
-  border-radius:16px;
-  width: 44%;
-  min-width:260px;
-  box-shadow:0 0 18px rgba(0,0,0,0.6);
-  backdrop-filter: blur(5px);
-}
+    @keyframes shoot {
+      0%   { opacity:0; transform:translate(-200px,-150px); }
+      10%  { opacity:1; }
+      100% { opacity:0; transform:translate(400px,200px); }
+    }
 
-.card-header {
-  font-size:1.3rem;
-  margin-bottom:6px;
-}
+    /* ======================================
+       CONTENUTO
+    ====================================== */
+    .content {
+      position:relative;
+      z-index:10;
+      max-width:1200px;
+      margin:0 auto;
+      padding:14px;
+      margin-top:-4vh;     /* lascia più cielo ma porta su le card */
+      text-align:center;
+    }
 
-/* CARD GRANDI PER VENTO / PIOGGIA */
-.wind-card, .rain-card {
-  padding:26px !important;
-}
+    h1 {
+      font-size:1.5rem;
+      text-shadow:0 0 14px #00aaff;
+      margin-bottom:4px;
+    }
 
-.wind-value, .rain-value {
-  font-size:2.4rem;
-  font-weight:bold;
-  margin-top:10px;
-}
+    .sun-times {
+      font-size:0.9rem;
+      opacity:0.9;
+      margin-bottom:6px;
+    }
 
-.wind-extra {
-  font-size:0.9rem;
-  margin-top:12px;
-  opacity:0.9;
-}
+    .status-bar {
+      margin-bottom:12px;
+      font-size:0.9rem;
+      opacity:0.85;
+    }
 
-/* CARD METEO BASE */
-.bottom-cards {
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:18px;
-  margin-top:20px;
-}
+    /* ======================================
+       CARD VENTO / PIOGGIA
+    ====================================== */
+    .cards-top {
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:14px;
+      margin-bottom:14px;
+    }
 
-.bottom-card {
-  background:rgba(25,25,40,0.8);
-  padding:18px;
-  border-radius:14px;
-  text-align:center;
-  box-shadow:0 0 14px rgba(0,0,0,0.4);
-}
+    .card {
+      background:rgba(13,18,35,0.9);
+      border-radius:14px;
+      padding:16px;           /* più piccole (prima 22–26) */
+      width:40%;
+      min-width:240px;
+      box-shadow:0 0 16px rgba(0,0,0,0.6);
+      text-align:center;
+    }
 
-.value {
-  margin-top:6px;
-  font-size:1.9rem;
-  font-weight:bold;
-}
+    .card-header {
+      font-size:1.1rem;
+      margin-bottom:6px;
+      opacity:0.95;
+    }
 
-.unit {
-  opacity:0.7;
-  margin-top:2px;
-}
+    .wind-value, .rain-value {
+      font-size:2rem;         /* ridotto del ~25% */
+      font-weight:700;
+      margin-top:6px;
+    }
 
-/* MOBILE FIX */
-@media(max-width:600px){
-  .card { width:90%; }
-  .bottom-cards { grid-template-columns:1fr; }
-}
+    .wind-extra {
+      margin-top:8px;
+      font-size:0.85rem;
+      opacity:0.9;
+      line-height:1.3;
+    }
 
-</style>
+    .rain-value {
+      color:#7cd8ff;
+    }
+
+    /* ======================================
+       CARD METEO BASE (4 card)
+    ====================================== */
+    .bottom-cards {
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:14px;
+      margin-top:6px;
+    }
+
+    .bottom-card {
+      background:rgba(16,22,45,0.9);
+      border-radius:14px;
+      padding:14px;
+      text-align:center;
+      box-shadow:0 0 12px rgba(0,0,0,0.6);
+    }
+
+    .bottom-card .card-header {
+      font-size:1rem;
+      margin-bottom:4px;
+    }
+
+    .bottom-card .value {
+      font-size:1.6rem;      /* più piccole */
+      font-weight:700;
+      margin-top:4px;
+    }
+
+    .bottom-card .unit {
+      font-size:0.8rem;
+      opacity:0.8;
+      margin-top:2px;
+    }
+
+    @media(max-width:800px){
+      .card { width:46%; }
+    }
+
+    @media(max-width:600px){
+      .card { width:100%; }
+      .bottom-cards { grid-template-columns:1fr; }
+      .content { margin-top:-2vh; }
+    }
+  </style>
 </head>
 
 <body>
 
-<!-- ======================================
+<!-- =======================
      CIELO
-====================================== -->
+======================= -->
 <div class="sky" id="sky">
+  <!-- Sole / Luna -->
   <div class="sunmoon" id="sunMoon">
     <div class="moon-phase-mask" id="moonMask"></div>
   </div>
-  <div class="shooting-star"></div>
+
+  <!-- Cometa -->
+  <div class="comet" id="comet">
+    <div class="comet-tail"></div>
+  </div>
+
+  <!-- Una stella cadente "random" -->
+  <div class="shooting-star" id="shootingStar"></div>
 </div>
 
-<!-- ======================================
-     DASHBOARD
-====================================== -->
+<!-- =======================
+     CONTENUTO
+======================= -->
 <div class="content">
+  <h1>🌟 Langini Meteo – Dashboard V8.9.1</h1>
+  <div id="sunTimes" class="sun-times">Alba: --:-- • Tramonto: --:--</div>
+  <div id="statusText" class="status-bar">Caricamento dati…</div>
 
-  <h1>🌟 Langini Meteo – Dashboard V8.9</h1>
-  <div id="sunTimes" class="sun-times">Alba --:-- • Tramonto --:--</div>
-  <div id="statusText" class="status-bar">Caricamento dati...</div>
-
-  <!-- =======================
-       CARD VENTO + PIOGGIA
-  ======================== -->
-  <div class="cards">
-
-    <div class="card wind-card">
+  <!-- VENTO + PIOGGIA -->
+  <div class="cards-top">
+    <div class="card">
       <div class="card-header">🌬️ Vento attuale</div>
       <div id="windNow" class="wind-value">-- km/h</div>
-
       <div class="wind-extra">
         <div id="windAvg">Media 24h: -- km/h</div>
         <div id="windKwh">Energia annua stimata: -- kWh</div>
       </div>
     </div>
 
-    <div class="card rain-card">
+    <div class="card">
       <div class="card-header">🌧️ Stato Pioggia</div>
       <div id="rainState" class="rain-value">--</div>
     </div>
-
   </div>
 
-  <!-- =======================
-       CARD METEO BASE
-  ======================== -->
+  <!-- METEO BASE -->
   <div class="bottom-cards">
-
     <div class="bottom-card">
       <div class="card-header">🌡️ Temperatura</div>
       <div id="tempValue" class="value">--</div>
       <div class="unit">°C</div>
     </div>
-
     <div class="bottom-card">
       <div class="card-header">💧 Umidità</div>
       <div id="humValue" class="value">--</div>
       <div class="unit">%</div>
     </div>
-
     <div class="bottom-card">
       <div class="card-header">🌪️ Pressione</div>
       <div id="pressureValue" class="value">--</div>
       <div class="unit">hPa</div>
     </div>
-
     <div class="bottom-card">
       <div class="card-header">🌫️ Qualità Aria</div>
       <div id="aqValue" class="value">--</div>
       <div class="unit">AQI</div>
     </div>
-
   </div>
-
 </div>
 
-<!-- ======================================
-     JAVASCRIPT
-====================================== -->
 <script>
+  // ================== CONFIG THINGSPEAK ==================
+  const CH_METEO = 3149218;   // pressione, temp, umidità, AQI
+  const CH_WIND  = 2956240;   // vento, pioggia
 
-const LAT = 45.7525;
-const LON = 8.8975;
+  const LAT = 45.7525;
+  const LON = 8.8975;
 
-/* -----------------------------------
-   Lettura dati da ThingSpeak
------------------------------------ */
-const CH_METEO = 3149218;   // Temperature, pressure, humidity, AQ
-const CH_WIND  = 2956240;   // Wind + rain
-const READ_KEY = "2B5OCENVF8TW06WZ";
+  function clamp(v,a,b){ return Math.min(b,Math.max(a,v)); }
+  function toNum(v){ const n=parseFloat(v); return isNaN(n)?0:n; }
 
-/* --- Calcolo energia annua kWh --- */
-function calcKwh(media_kmh){
-  let v = media_kmh / 3.6;
-  let A = 0.85 * 0.59;
-  let rho = 1.225;
-  let Cp = 0.25;
-  let P = 0.5 * rho * A * Cp * v*v*v;
-  let kWh = P * 24 * 365 / 1000;
-  return kWh.toFixed(1);
-}
-
-/* --- Aggiornamento principale --- */
-async function updateDashboard(){
-
-  try {
-
-    /* --- DATI METEO --- */
-    const meteo = await fetch(
-      `https://api.thingspeak.com/channels/${CH_METEO}/feeds.json?results=1`
-    ).then(r=>r.json());
-
-    const m = meteo.feeds[0];
-    document.getElementById("tempValue").innerText = m.field2;
-    document.getElementById("humValue").innerText  = m.field3;
-    document.getElementById("pressureValue").innerText = m.field1;
-    document.getElementById("aqValue").innerText   = m.field4;
-
-    /* --- DATI VENTO/PIOGGIA --- */
-    const wind = await fetch(
-      `https://api.thingspeak.com/channels/${CH_WIND}/feeds.json?results=288`
-    ).then(r=>r.json());
-
-    let last = wind.feeds[wind.feeds.length-1];
-
-    let ventoNow = parseFloat(last.field1||0).toFixed(1);
-    document.getElementById("windNow").innerText = ventoNow + " km/h";
-
-    let rain = last.field2 === "1" ? "Pioggia" : "Asciutto";
-    let rainEl = document.getElementById("rainState");
-    rainEl.innerText = rain;
-    rainEl.style.color = rain==="Pioggia" ? "#ff7070" : "#7cd8ff";
-
-    // Media 24h
-    let sum = 0, count=0;
-    wind.feeds.forEach(f=>{
-      if(f.field1){ sum+=parseFloat(f.field1); count++; }
-    });
-    let media24 = count>0 ? (sum/count).toFixed(1) : 0;
-    document.getElementById("windAvg").innerText =
-      "Media 24h: " + media24 + " km/h";
-
-    // Energia annua
-    document.getElementById("windKwh").innerText =
-      "Energia annua stimata: " + calcKwh(media24) + " kWh";
-
-
-    document.getElementById("statusText").innerText =
-      "Aggiornato alle " + new Date(last.created_at).toLocaleTimeString();
-
-  }catch(e){
-    document.getElementById("statusText").innerText = "Errore connessione";
-  }
-}
-
-setInterval(updateDashboard, 15000);
-updateDashboard();
-
-/* -----------------------------------
-   Aggiornamento cielo (sole/luna)
------------------------------------ */
-function updateSky(){
-  const now = new Date();
-  const times = SunCalc.getTimes(now, LAT, LON);
-  const pos = SunCalc.getPosition(now, LAT, LON);
-  const alt = pos.altitude * 180 / Math.PI;
-
-  const SM = document.getElementById("sunMoon");
-  const MASK = document.getElementById("moonMask");
-  const SKY = document.getElementById("sky");
-
-  const isDay = now >= times.sunrise && now <= times.sunset;
-
-  if(isDay){
-    SM.classList.add("sun");
-    SM.classList.remove("moon");
-    MASK.style.display="none";
-    SKY.style.background = "#1c2d48";
-  } else {
-    SM.classList.remove("sun");
-    SM.classList.add("moon");
-    MASK.style.display="block";
-    SKY.style.background = "#000814";
+  // ================== FASI LUNARI ==================
+  function moonPhaseIndex(date){
+    const lp=2551443;
+    const new_moon=Date.UTC(1970,0,7,20,35,0);
+    const now=date.getTime();
+    const phase=((now-new_moon)/1000)%lp;
+    return Math.floor((phase/lp)*8+0.5)&7;
   }
 
-  // Sole/luna in cielo
-  const p = (now - times.sunrise) / (times.sunset - times.sunrise);
-  const W = window.innerWidth;
-  SM.style.left = p * (W+240) - 120 + "px";
-}
+  // ================== CIELO / SOLE / LUNA ==================
+  function updateSky(){
+    const now=new Date();
+    const times=SunCalc.getTimes(now,LAT,LON);
+    const pos=SunCalc.getPosition(now,LAT,LON);
+    const alt=pos.altitude*180/Math.PI;
 
-setInterval(updateSky, 10000);
-updateSky();
+    const SKY=document.getElementById("sky");
+    const SM=document.getElementById("sunMoon");
 
+    const isDay = now>=times.sunrise && now<=times.sunset;
+
+    // alba / tramonto
+    const fmt = d => d.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
+    document.getElementById("sunTimes").textContent =
+      "Alba: "+fmt(times.sunrise)+" • Tramonto: "+fmt(times.sunset);
+
+    if(isDay){
+      SM.classList.add("sun");
+      SM.classList.remove("moon");
+      SKY.style.background = "#001f3a";
+    }else{
+      SM.classList.remove("sun");
+      SM.classList.add("moon");
+      SKY.style.background = "#000814";
+
+      const idx=moonPhaseIndex(now);
+      for(let i=0;i<8;i++) SM.classList.remove("phase-"+i);
+      SM.classList.add("phase-"+idx);
+    }
+
+    // posizione in cielo (arco)
+    const start=isDay?times.sunrise:times.sunset;
+    const end=isDay?times.sunset:new Date(times.sunrise.getTime()+86400000);
+    let p=(now-start)/(end-start);
+    p=clamp(p,0,1);
+
+    const W=window.innerWidth;
+    const baseTop=window.innerHeight*0.03;
+    const amp=window.innerHeight*0.18;
+    const y=baseTop + (1-Math.sin(p*Math.PI))*amp;
+
+    SM.style.left = (p*(W+200)-100)+"px";
+    SM.style.top  = y+"px";
+  }
+
+  // ================== COMETA (1–25 DICEMBRE) ==================
+  function updateComet(){
+    const comet=document.getElementById("comet");
+    const now=new Date();
+    const m=now.getMonth();   // 0=gennaio
+    const d=now.getDate();
+
+    if(m!==11 || d<1 || d>25){
+      comet.style.opacity=0;
+      comet.classList.remove("big");
+      return;
+    }
+
+    const width=window.innerWidth;
+    comet.style.opacity=1;
+
+    if(d<25){
+      const progress=(d-1)/24;
+      const left=-200 + progress*(width+200);
+      comet.classList.remove("big");
+      comet.style.top = "14vh";
+      comet.style.left = left+"px";
+    }else{
+      comet.classList.add("big");
+      const size=70;
+      comet.style.top="16vh";
+      comet.style.left=(width/2 - size/2)+"px";
+    }
+  }
+
+  // ================== STELLA CADENTE ==================
+  function randomShootingStar(){
+    const star=document.getElementById("shootingStar");
+    const now=new Date();
+    const times=SunCalc.getTimes(now,LAT,LON);
+    const isNight = now < times.sunrise || now > times.sunset;
+    if(!isNight) return;
+    if(Math.random()<0.35){
+      star.style.top = "5vh";
+      star.style.left = "5vw";
+      star.style.opacity=1;
+      star.style.animation="none";
+      void star.offsetWidth;
+      star.style.animation="shoot 1.6s linear forwards";
+    }
+  }
+
+  // ================== KWH EOLICI ==================
+  function calcKwh(media_kmh){
+    const v = media_kmh / 3.6;   // km/h → m/s
+    const A = 0.85 * 0.59;      // area stimata
+    const rho = 1.225;
+    const Cp = 0.25;
+    const P = 0.5 * rho * A * Cp * Math.pow(v,3); // Watt
+    const kWhAnno = P * 24 * 365 / 1000;
+    return kWhAnno.toFixed(1);
+  }
+
+  // ================== DASHBOARD (THINGSPEAK) ==================
+  async function updateDashboard(){
+    try{
+      // --- METEO BASE ---
+      const meteo = await fetch(
+        `https://api.thingspeak.com/channels/${CH_METEO}/feeds.json?results=1`
+      ).then(r=>r.json());
+      const m = meteo.feeds?.[0] || {};
+
+      const pressure = toNum(m.field1);
+      const temp     = toNum(m.field2);
+      const hum      = toNum(m.field3);
+      const aqi      = toNum(m.field4);
+
+      document.getElementById("pressureValue").textContent =
+        pressure ? pressure.toFixed(0) : "--";
+      document.getElementById("tempValue").textContent =
+        temp ? temp.toFixed(1) : "--";
+      document.getElementById("humValue").textContent =
+        hum ? hum.toFixed(0) : "--";
+      document.getElementById("aqValue").textContent =
+        aqi ? aqi.toFixed(0) : "--";
+
+      // --- VENTO / PIOGGIA ---
+      const wind = await fetch(
+        `https://api.thingspeak.com/channels/${CH_WIND}/feeds.json?results=288`
+      ).then(r=>r.json());
+
+      const feedsW = wind.feeds || [];
+      const lastW  = feedsW.at(-1) || {};
+
+      const windNow = toNum(lastW.field1);
+      document.getElementById("windNow").textContent =
+        windNow ? windNow.toFixed(1)+" km/h" : "-- km/h";
+
+      const rainVal = toNum(lastW.field2);
+      const rEl = document.getElementById("rainState");
+      if(rainVal>=1){
+        rEl.textContent = "Pioggia";
+        rEl.style.color = "#ff7b7b";
+        rEl.style.textShadow = "0 0 10px #ff4d4d";
+      }else{
+        rEl.textContent = "Asciutto";
+        rEl.style.color = "#7cd8ff";
+        rEl.style.textShadow = "0 0 10px #29aaff";
+      }
+
+      // media 24h
+      const vals = feedsW
+        .map(f=>parseFloat(f.field1))
+        .filter(v=>!isNaN(v));
+      let media = 0;
+      if(vals.length){
+        media = vals.reduce((a,b)=>a+b,0)/vals.length;
+      }
+
+      document.getElementById("windAvg").textContent =
+        "Media 24h: "+(media?media.toFixed(1):"--")+" km/h";
+
+      document.getElementById("windKwh").textContent =
+        media ? ("Energia annua stimata: "+calcKwh(media)+" kWh")
+              : "Energia annua stimata: -- kWh";
+
+      const ts = lastW.created_at || m.created_at || new Date().toISOString();
+      document.getElementById("statusText").textContent =
+        "Aggiornato: "+ new Date(ts).toLocaleTimeString("it-IT");
+
+    }catch(e){
+      console.log("Errore updateDashboard:",e);
+      document.getElementById("statusText").textContent =
+        "Errore connessione dati";
+    }
+  }
+
+  // ================== LOOP PERIODICI ==================
+  function tickSkyAll(){
+    updateSky();
+    updateComet();
+  }
+
+  tickSkyAll();
+  updateDashboard();
+  setInterval(tickSkyAll, 12000);
+  setInterval(updateDashboard, 20000);
+  setInterval(randomShootingStar, 8000);
+
+  window.addEventListener("resize", ()=>{
+    updateSky();
+    updateComet();
+  });
 </script>
+
 </body>
 </html>
