@@ -328,14 +328,31 @@
 
     /* ====== CONTENUTO DASHBOARD ====== */
 
-    .content {
-      position:relative;
-      z-index:20;
-      max-width:1200px;
-      margin:0 auto;
-      padding:16px;
-      margin-top:35vh;
-    }
+   /* CONTENUTO OTTIMIZZATO PER SMARTPHONE */
+.content {
+  position:relative;
+  z-index:20;
+  max-width:1200px;
+  margin:0 auto;
+  padding:14px;
+  margin-top:22vh;          /* PRIMA: 35vh → TROPPO ALTO */
+}
+
+/* RIDUZIONE CIELO */
+.sky {
+  position:relative;
+  flex:1;
+  background:#1f2b3a;
+  overflow:hidden;
+  height:38vh;              /* LIMITE FISSO PER NON INVADERE LA DASHBOARD */
+}
+
+/* SU SMARTPHONE riduci ancora */
+@media (max-width: 600px){
+  .sky { height:32vh; }
+  .content { margin-top:18vh; }
+}
+
 
     h1 {
       text-align:center;
