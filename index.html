@@ -479,14 +479,14 @@ const WIND_JSON_URL = "https://raw.githubusercontent.com/972Davide/Langini_Meteo
       document.getElementById("aqValue").textContent =
         m.field4 ? parseFloat(m.field4).toFixed(0) : "--";
 
-      // --- VENTO / PIOGGIA con API KEY ---
-      // --- VENTO / PIOGGIA da GitHub JSON ---
+     // --- VENTO / PIOGGIA da GitHub JSON ---
 const windJson = await fetch(WIND_JSON_URL + "?t=" + Date.now()).then(r => r.json());
 
 const windNow = toNum(windJson.wind_kmh);
 document.getElementById("windNow").textContent =
   windNow ? windNow.toFixed(1) + " km/h" : "-- km/h";
 
+// stato pioggia
 const rainVal = toNum(windJson.rain);
 const rEl = document.getElementById("rainState");
 if (rainVal >= 1) {
@@ -499,6 +499,14 @@ if (rainVal >= 1) {
   rEl.style.textShadow = "0 0 10px #29aaff";
 }
 
+// disattiva media 24h (nessuno storico GitHub disponibile)
+document.getElementById("windAvg").textContent = "Media 24h: -- km/h";
+document.getElementById("windKwh").textContent = "Energia annua stimata: -- kWh";
+
+// timestamp locale
+document.getElementById("statusText").textContent =
+  "Aggiornato: " + new Date().toLocaleTimeString("it-IT");
+    
 
       // --- MEDIA 24H ---
       const vals = feedsW
